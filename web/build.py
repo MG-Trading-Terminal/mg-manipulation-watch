@@ -104,9 +104,10 @@ def _evidence(links) -> str:
 
 
 _FLAG_STYLE = {"squeeze": "fl-red", "oi-dominance": "fl-amber",
-               "mc/tvl-disconnect": "fl-info", "ps-disconnect": "fl-info"}
+               "mc/tvl-disconnect": "fl-info", "ps-disconnect": "fl-info",
+               "low-float": "fl-amber"}
 _FLAG_LABEL = {"squeeze": "SQUEEZE", "oi-dominance": "OI", "mc/tvl-disconnect": "MC/TVL",
-               "ps-disconnect": "P/S"}
+               "ps-disconnect": "P/S", "low-float": "LOW-FLOAT"}
 
 
 def _flag_chips(flags, ctx) -> str:
@@ -119,6 +120,8 @@ def _flag_chips(flags, ctx) -> str:
             title = f"MC/TVL {ctx['mc_tvl']}x"
         elif fl == "ps-disconnect" and ctx.get("ps"):
             title = f"P/S {ctx['ps']}x"
+        elif fl == "low-float" and ctx.get("float") is not None:
+            title = f"{round(ctx['float'] * 100)}% circulating of FDV"
         out.append(f'<span class="fl {_FLAG_STYLE.get(fl, "fl-info")}" '
                    f'title="{_esc(title)}">{_esc(_FLAG_LABEL.get(fl, fl))}</span>')
     return " ".join(out)

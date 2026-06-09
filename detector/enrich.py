@@ -69,7 +69,8 @@ def _coingecko_markets(pages: int) -> Dict[str, dict]:
             if not s or mc is None:
                 continue
             if s not in out or mc > out[s]["mc"]:
-                out[s] = {"mc": mc, "vol": _f(c.get("total_volume"))}
+                out[s] = {"mc": mc, "vol": _f(c.get("total_volume")),
+                          "fdv": _f(c.get("fully_diluted_valuation"))}
         time.sleep(2.5)  # free-tier pacing (python sleep, not the shell)
     return out
 
@@ -135,7 +136,7 @@ TVL_EXCLUDE_CATEGORIES = {"CEX", "Chain", "Bridge", "Stablecoins", "Infrastructu
 
 
 def lookup(base_symbol: str, maps: dict):
-    """Return (market_cap_usd, tvl_usd, fees_annualized_usd, volume_usd).
+    """Return (market_cap_usd, tvl_usd, fees_annualized_usd, volume_usd, fdv_usd).
 
     MC is always returned (drives OI/MC). TVL & fees — the MC/TVL and P/S signals —
     are suppressed for stablecoins and non-protocol categories, where the ratio is
@@ -146,6 +147,7 @@ def lookup(base_symbol: str, maps: dict):
     dl = maps.get("dl", {}).get(s)
     mc = (cg or {}).get("mc")
     vol = (cg or {}).get("vol")
+    fdv = (cg or {}).get("fdv")
     tvl = fees = None
     if dl:
         cat = dl.get("category")
@@ -160,7 +162,7 @@ def lookup(base_symbol: str, maps: dict):
             fees = dl.get("fees")
         if mc is None:
             mc = dl_mc  # DefiLlama mcap fallback (no CoinGecko hit)
-    return mc, tvl, fees, vol
+    return mc, tvl, fees, vol, fdv
 
 
 def main(argv) -> int:

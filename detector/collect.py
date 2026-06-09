@@ -41,7 +41,7 @@ def _signals(tk: dict, maps: dict):
     the manipulation-mechanics signals only: funding (squeeze) + OI/MC (perp
     dominance of real float). MC/TVL is auto-scored only in the curated pipeline
     where the DefiLlama slug is hand-verified."""
-    mc, tvl, fees, cg_vol = enrich.lookup(tk["symbol"], maps)
+    mc, tvl, fees, cg_vol, fdv = enrich.lookup(tk["symbol"], maps)
     sig = Signals(
         market_cap_usd=mc,
         tvl_usd=None,
@@ -51,11 +51,13 @@ def _signals(tk: dict, maps: dict):
         open_interest_usd=tk.get("open_interest_usd"),
         volume_24h_usd=tk.get("volume_24h_usd") or cg_vol,
     )
-    ctx = {"market_cap_usd": mc, "tvl_usd": tvl, "fees_annualized_usd": fees}
+    ctx = {"market_cap_usd": mc, "tvl_usd": tvl, "fees_annualized_usd": fees, "fdv_usd": fdv}
     if mc and tvl:
         ctx["mc_tvl"] = round(mc / tvl, 1)
     if mc and fees:
         ctx["ps"] = round(mc / fees, 0)
+    if mc and fdv and fdv > 0:
+        ctx["float"] = round(mc / fdv, 3)  # circulating share of fully-diluted
     return sig, ctx
 
 
@@ -73,6 +75,9 @@ def _flags(rec: dict, ctx: dict) -> list:
     ps = ctx.get("ps")
     if ps and ps >= 1000:
         flags.append("ps-disconnect")           # price/sales blow-out (context)
+    fl = ctx.get("float")
+    if fl is not None and fl < 0.30 and (ctx.get("fdv_usd") or 0) >= 20e6:
+        flags.append("low-float")               # <30% circulating, FDV >=$20M (T3)
     return flags
 
 
