@@ -20,7 +20,7 @@ import time
 import urllib.request
 from typing import Dict, List, Optional
 
-_UA = {"User-Agent": "mgterminal-crime-scan/0.1 (+https://mgterminal.com)"}
+_UA = {"User-Agent": "mgterminal-crime-scan/0.1 (+https://manipulation.mgterminal.com)"}
 _TIMEOUT = 20
 
 # CoinGecko platform id -> GoPlus chain id (EVM chains GoPlus supports).

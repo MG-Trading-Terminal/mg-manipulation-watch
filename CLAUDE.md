@@ -5,7 +5,7 @@ An auto-updated, JSON-first **manipulation-risk watchlist** for perpetual-future
 tokens. A scoring engine flags the "crime-coin" pattern (fundamental disconnect,
 perp-driven short-squeeze, concentrated supply, wash volume), every flag maps to
 an [OAK](https://onchainattack.org) technique, and a static site is generated
-from the data. Ships at **mgterminal.com** under the **MeatGrinder** brand.
+from the data. Ships at **manipulation.mgterminal.com** under the **MeatGrinder** brand.
 
 This is a sibling data source to the `bot-trader-2-0` system — the JSON is meant
 for cross-checking ("сверка") against the trading core's own reads.
@@ -32,7 +32,7 @@ data/universe.json ─▶ detector/pipeline.py
                               ▼
    Vite + React + TS  ─(npm run build)─▶  dist/ (index.html + hashed assets + data.json)
                               ▼
-                  GitHub Action (every 4h) ─▶ commit data, deploy Pages → mgterminal.com
+                  GitHub Action (every 4h) ─▶ commit data, deploy Pages → manipulation.mgterminal.com
 ```
 
 ## Frontend = Vite + React + TypeScript (same stack as OAK — NOT Python-generated HTML)

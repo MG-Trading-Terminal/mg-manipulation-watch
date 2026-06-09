@@ -22,7 +22,7 @@ import urllib.request
 from typing import List, Optional
 
 _TIMEOUT = 15
-_UA = {"User-Agent": "mgterminal-crime-scan/0.1 (+https://mgterminal.com)"}
+_UA = {"User-Agent": "mgterminal-crime-scan/0.1 (+https://manipulation.mgterminal.com)"}
 
 
 def _get(url: str, data: Optional[bytes] = None, headers=None):

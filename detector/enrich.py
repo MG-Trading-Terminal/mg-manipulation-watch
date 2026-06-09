@@ -27,7 +27,7 @@ from typing import Dict, Optional
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CACHE = os.path.join(ROOT, "data", "enrich", "maps.json")
 
-_UA = {"User-Agent": "mgterminal-crime-scan/0.1 (+https://mgterminal.com)"}
+_UA = {"User-Agent": "mgterminal-crime-scan/0.1 (+https://manipulation.mgterminal.com)"}
 _TIMEOUT = 20
 # Binance/Bybit contract-size prefixes — strip so "1000PEPE" matches "PEPE".
 # NOTE: only real multiplier prefixes. A bare "K"/"1K"/"1B" would eat the first

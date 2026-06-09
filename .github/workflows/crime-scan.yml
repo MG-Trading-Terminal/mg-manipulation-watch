@@ -2,7 +2,7 @@ name: crime-scan
 
 # Every 4 hours: refresh the watchlist data, gate on the calibration test,
 # version the lightweight history in git, then build + deploy the site to Pages
-# (mgterminal.com). This IS the production update system — no manual step.
+# (manipulation.mgterminal.com). This IS the production update system — no manual step.
 on:
   schedule:
     - cron: "0 */4 * * *"

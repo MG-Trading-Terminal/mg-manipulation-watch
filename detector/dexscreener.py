@@ -17,7 +17,7 @@ import time
 import urllib.request
 from typing import Optional
 
-_UA = {"User-Agent": "mgterminal-crime-scan/0.1 (+https://mgterminal.com)"}
+_UA = {"User-Agent": "mgterminal-crime-scan/0.1 (+https://manipulation.mgterminal.com)"}
 _TIMEOUT = 15
 
 # OAK-T2 thresholds.

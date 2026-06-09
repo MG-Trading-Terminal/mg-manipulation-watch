@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { data } from "../types";
 import { Badge, BadgeSvg } from "../components/Badge";
 
-const SITE = "https://mgterminal.com";
+const SITE = "https://manipulation.mgterminal.com";
 
 function pickExamples() {
   const by = data.by_token;
@@ -21,7 +21,7 @@ export function BadgesView() {
 
   return (
     <article className="prose">
-      <div className="eyebrow">mgterminal.com · badges</div>
+      <div className="eyebrow">manipulation.mgterminal.com · badges</div>
       <h1>Embeddable <em>status badges</em></h1>
       <p className="lede">
         Every scanned token gets a live SVG badge. A clean project can wear its

@@ -42,7 +42,7 @@ and the whole thing safe to run unattended every 4 hours.
           3. run collect          → refresh JSON
           4. build                → bake JSON + render dist/
           5. commit data/history  → versioned summary for diffing / сверка
-          6. deploy-pages         → GitHub Pages → mgterminal.com
+          6. deploy-pages         → GitHub Pages → manipulation.mgterminal.com
 ```
 
 ## The two-tier data model (machine vs human)

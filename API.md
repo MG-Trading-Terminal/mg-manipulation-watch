@@ -6,9 +6,9 @@ The watchlist is **open data** — anyone can fetch it, no key, no auth.
 
 | endpoint | what | stability |
 |---|---|---|
-| `https://mgterminal.com/v1/data.json` | full per-token watchlist | **stable — pin this** |
-| `https://mgterminal.com/v1/token/<SYMBOL>.json` | one token's record | stable |
-| `https://mgterminal.com/data.json` | latest (alias of current version) | may change shape |
+| `https://manipulation.mgterminal.com/v1/data.json` | full per-token watchlist | **stable — pin this** |
+| `https://manipulation.mgterminal.com/v1/token/<SYMBOL>.json` | one token's record | stable |
+| `https://manipulation.mgterminal.com/data.json` | latest (alias of current version) | may change shape |
 
 **Pin `/v1/` for anything automated.** `v1` only ever changes additively (new
 fields), so your integration won't break. A breaking change ships under a new path
@@ -97,20 +97,20 @@ auto-condemn (they appear on plenty of legit L1s). See `SOURCES.md`.
 
 ```bash
 # All suspected tokens, with their signs (pin /v1/)
-curl -s https://mgterminal.com/v1/data.json \
+curl -s https://manipulation.mgterminal.com/v1/data.json \
   | jq '.by_token[] | select(.status=="suspected") | {symbol, score, flags}'
 
 # Tokens carrying >=3 signs
-curl -s https://mgterminal.com/v1/data.json \
+curl -s https://manipulation.mgterminal.com/v1/data.json \
   | jq '.by_token[] | select((.flags|length) >= 3) | {symbol, flags}'
 
 # One token (profile + signs + context)
-curl -s https://mgterminal.com/v1/token/MYX.json | jq '.token | {status, flags, profile}'
+curl -s https://manipulation.mgterminal.com/v1/token/MYX.json | jq '.token | {status, flags, profile}'
 ```
 
 ```python
 import urllib.request, json
-d = json.load(urllib.request.urlopen("https://mgterminal.com/v1/data.json"))
+d = json.load(urllib.request.urlopen("https://manipulation.mgterminal.com/v1/data.json"))
 assert d["api_version"] == 1                      # pin the contract
 multi = [t for t in d["by_token"] if len(t["flags"]) >= 2]
 print(d["generated_at"], "·", len(multi), "multi-sign tokens")
@@ -119,7 +119,7 @@ print(flags.get("MYX"))
 ```
 
 ```js
-const d = await (await fetch("https://mgterminal.com/v1/data.json")).json();
+const d = await (await fetch("https://manipulation.mgterminal.com/v1/data.json")).json();
 const honeypots = d.by_token.filter((t) => t.flags.includes("honeypot"));
 ```
 

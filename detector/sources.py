@@ -24,7 +24,7 @@ from typing import Any, Optional
 from .crime_score import Signals
 
 _TIMEOUT = 10
-_UA = {"User-Agent": "mgterminal-crime-scan/0.1 (+https://mgterminal.com)"}
+_UA = {"User-Agent": "mgterminal-crime-scan/0.1 (+https://manipulation.mgterminal.com)"}
 
 BINANCE_FAPI = "https://fapi.binance.com"
 COINGECKO = "https://api.coingecko.com/api/v3"

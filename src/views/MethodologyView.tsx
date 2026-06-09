@@ -4,7 +4,7 @@ export function MethodologyView() {
   const d = data;
   return (
     <article className="prose">
-      <div className="eyebrow">mgterminal.com · methodology</div>
+      <div className="eyebrow">manipulation.mgterminal.com · methodology</div>
       <h1>How a token gets <em>on the list</em></h1>
       <p className="lede">
         We sweep the entire perpetual-futures market every four hours, enrich each

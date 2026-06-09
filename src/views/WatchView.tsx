@@ -77,7 +77,7 @@ export function WatchView() {
   return (
     <>
       <section className="hero">
-        <div className="eyebrow">mgterminal.com · suspected manipulation</div>
+        <div className="eyebrow">manipulation.mgterminal.com · suspected manipulation</div>
         <h1>Manipulation <em>Watch</em></h1>
         <p className="lede">
           Automated risk scan of perpetual-futures tokens for the crime-coin pattern —

@@ -1,7 +1,7 @@
 # MG Terminal — Manipulation Watch
 
 > Auto-updated manipulation-risk watchlist for perp tokens. JSON-first.
-> Live at **[mgterminal.com](https://mgterminal.com)**. A MeatGrinder system.
+> Live at **[manipulation.mgterminal.com](https://manipulation.mgterminal.com)**. A MeatGrinder system.
 
 ## What this is
 An automated scan that flags the **"crime-coin" pattern** in perpetual-futures
@@ -11,7 +11,7 @@ and wash-traded volume. Each signal is mapped to an
 [OnChain Attack Knowledge (OAK)](https://onchainattack.org) technique so a flag
 is always explainable, never a black box.
 
-The **JSON dataset is the source of truth** ([`/data.json`](https://mgterminal.com/data.json));
+The **JSON dataset is the source of truth** ([`/data.json`](https://manipulation.mgterminal.com/data.json));
 the website is generated from it. The data is designed to be cross-checked
 against other systems.
 
@@ -81,7 +81,7 @@ detector/   scoring engine + data adapters (collect, venues, enrich, goplus, dex
 data/       universe.json (inputs) · candidates/ (auto) · confirmed/ (human)
 src/        Vite + React + TS frontend (App, components, generated data)
 scripts/    build-site-data.mjs (JSON→generated.ts), copy-static.mjs, local runners
-dist/       built site (generated) — deployed to mgterminal.com
+dist/       built site (generated) — deployed to manipulation.mgterminal.com
 tests/      calibration regression
 ```
 
@@ -92,21 +92,21 @@ hours it scans, gates on the calibration test, commits the history summary, buil
 the site, and deploys to GitHub Pages. The enrichment cache persists across runs
 (via `actions/cache`) so coverage accumulates. To go live, once:
 
-1. **Create the repo & push** — `gh repo create mgterminal --public --source=. --push`
-2. **Add the API key secret** — `gh secret set COINGECKO_API_KEY` (free [CoinGecko Demo](https://www.coingecko.com/en/api) key; the scan still runs without it, just rate-limited).
+1. **Push** — `git remote add origin git@github.com:MG-Trading-Terminal/mg-manipulation-watch.git && git push -u origin main`
+2. **Add the API key secret** — `gh secret set COINGECKO_API_KEY` (or repo *Settings → Secrets → Actions*) — free [CoinGecko Demo](https://www.coingecko.com/en/api) key; the scan still runs without it, just rate-limited.
 3. **Enable Pages** — repo *Settings → Pages → Source = **GitHub Actions***.
-4. **Custom domain** — point `mgterminal.com` DNS at GitHub Pages (4 A records, or a `CNAME` to `<user>.github.io`); the build already ships `dist/CNAME`.
+4. **Custom domain** — it's a subdomain, so add **one CNAME DNS record**: `manipulation` → `mg-trading-terminal.github.io`. The build already ships `dist/CNAME` (`manipulation.mgterminal.com`).
 5. **Kick it** — *Actions → crime-scan → Run workflow* (or wait for the cron).
 
 After that there is nothing manual: the job is the update system, Pages is production.
 
 ## Public API
 The watchlist is **open data** — one JSON document, no key, no auth, refreshed every
-4 hours: **[mgterminal.com/data.json](https://mgterminal.com/data.json)**. Structure,
+4 hours: **[manipulation.mgterminal.com/data.json](https://manipulation.mgterminal.com/data.json)**. Structure,
 fields, sign→OAK mapping and fetch examples (curl/Python/JS) are in **[API.md](./API.md)**.
 
 ```bash
-curl -s https://mgterminal.com/data.json \
+curl -s https://manipulation.mgterminal.com/data.json \
   | jq '.by_token[] | select((.flags|length) >= 2) | {symbol, flags}'
 ```
 

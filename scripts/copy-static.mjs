@@ -15,7 +15,7 @@ const dist = path.join(root, "dist");
 const srcPath = path.join(root, "data", "candidates", "index.json");
 fs.mkdirSync(dist, { recursive: true });
 
-fs.writeFileSync(path.join(dist, "CNAME"), "mgterminal.com\n");
+fs.writeFileSync(path.join(dist, "CNAME"), "manipulation.mgterminal.com\n");
 
 if (fs.existsSync(srcPath)) {
   const data = JSON.parse(fs.readFileSync(srcPath, "utf8"));
