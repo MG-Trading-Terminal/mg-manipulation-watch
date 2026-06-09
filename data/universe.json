@@ -1,12 +1,2140 @@
 {
-  "_comment": "Tokens to scan each cycle. Add entries here; the 4h pipeline scores them all. binance_symbol = USD-M perp; cg_id = CoinGecko id; defillama_slug = protocol slug (omit for non-protocol tokens). top_holders_pct / wash_volume_flag are optional manual (keyed) inputs until a fetcher exists.",
+  "_comment": "Full Binance USD-M perp universe (auto-built by detector.build_universe). Hand-curated enrichment (cg_id/defillama_slug/top_holders_pct) is preserved on rebuild.",
   "tokens": [
-    { "symbol": "BTC",  "binance_symbol": "BTCUSDT",  "cg_id": "bitcoin" },
-    { "symbol": "ETH",  "binance_symbol": "ETHUSDT",  "cg_id": "ethereum" },
-    { "symbol": "SOL",  "binance_symbol": "SOLUSDT",  "cg_id": "solana" },
-    { "symbol": "AAVE", "binance_symbol": "AAVEUSDT", "cg_id": "aave",    "defillama_slug": "aave" },
-    { "symbol": "ENA",  "binance_symbol": "ENAUSDT",  "cg_id": "ethena",  "defillama_slug": "ethena" },
-    { "symbol": "PENDLE","binance_symbol": "PENDLEUSDT","cg_id": "pendle","defillama_slug": "pendle" },
-    { "symbol": "JUP",  "binance_symbol": "JUPUSDT",  "cg_id": "jupiter-exchange-solana", "defillama_slug": "jupiter-aggregator" }
+    {
+      "symbol": "0G",
+      "binance_symbol": "0GUSDT"
+    },
+    {
+      "symbol": "1000000BOB",
+      "binance_symbol": "1000000BOBUSDT"
+    },
+    {
+      "symbol": "1000000MOG",
+      "binance_symbol": "1000000MOGUSDT"
+    },
+    {
+      "symbol": "1000BONK",
+      "binance_symbol": "1000BONKUSDT"
+    },
+    {
+      "symbol": "1000CAT",
+      "binance_symbol": "1000CATUSDT"
+    },
+    {
+      "symbol": "1000CHEEMS",
+      "binance_symbol": "1000CHEEMSUSDT"
+    },
+    {
+      "symbol": "1000FLOKI",
+      "binance_symbol": "1000FLOKIUSDT"
+    },
+    {
+      "symbol": "1000LUNC",
+      "binance_symbol": "1000LUNCUSDT"
+    },
+    {
+      "symbol": "1000PEPE",
+      "binance_symbol": "1000PEPEUSDT"
+    },
+    {
+      "symbol": "1000RATS",
+      "binance_symbol": "1000RATSUSDT"
+    },
+    {
+      "symbol": "1000SATS",
+      "binance_symbol": "1000SATSUSDT"
+    },
+    {
+      "symbol": "1000SHIB",
+      "binance_symbol": "1000SHIBUSDT"
+    },
+    {
+      "symbol": "1000XEC",
+      "binance_symbol": "1000XECUSDT"
+    },
+    {
+      "symbol": "1INCH",
+      "binance_symbol": "1INCHUSDT"
+    },
+    {
+      "symbol": "1MBABYDOGE",
+      "binance_symbol": "1MBABYDOGEUSDT"
+    },
+    {
+      "symbol": "2Z",
+      "binance_symbol": "2ZUSDT"
+    },
+    {
+      "symbol": "4",
+      "binance_symbol": "4USDT"
+    },
+    {
+      "symbol": "A",
+      "binance_symbol": "AUSDT"
+    },
+    {
+      "symbol": "AAVE",
+      "binance_symbol": "AAVEUSDT",
+      "cg_id": "aave",
+      "defillama_slug": "aave"
+    },
+    {
+      "symbol": "ACE",
+      "binance_symbol": "ACEUSDT"
+    },
+    {
+      "symbol": "ACH",
+      "binance_symbol": "ACHUSDT"
+    },
+    {
+      "symbol": "ACT",
+      "binance_symbol": "ACTUSDT"
+    },
+    {
+      "symbol": "ACU",
+      "binance_symbol": "ACUUSDT"
+    },
+    {
+      "symbol": "ACX",
+      "binance_symbol": "ACXUSDT"
+    },
+    {
+      "symbol": "ADA",
+      "binance_symbol": "ADAUSDT"
+    },
+    {
+      "symbol": "AERGO",
+      "binance_symbol": "AERGOUSDT"
+    },
+    {
+      "symbol": "AERO",
+      "binance_symbol": "AEROUSDT"
+    },
+    {
+      "symbol": "AEVO",
+      "binance_symbol": "AEVOUSDT"
+    },
+    {
+      "symbol": "AGLD",
+      "binance_symbol": "AGLDUSDT"
+    },
+    {
+      "symbol": "AGT",
+      "binance_symbol": "AGTUSDT"
+    },
+    {
+      "symbol": "AIA",
+      "binance_symbol": "AIAUSDT"
+    },
+    {
+      "symbol": "AIGENSYN",
+      "binance_symbol": "AIGENSYNUSDT"
+    },
+    {
+      "symbol": "AIN",
+      "binance_symbol": "AINUSDT"
+    },
+    {
+      "symbol": "AIO",
+      "binance_symbol": "AIOUSDT"
+    },
+    {
+      "symbol": "AIOT",
+      "binance_symbol": "AIOTUSDT"
+    },
+    {
+      "symbol": "AIXBT",
+      "binance_symbol": "AIXBTUSDT"
+    },
+    {
+      "symbol": "AKE",
+      "binance_symbol": "AKEUSDT"
+    },
+    {
+      "symbol": "AKT",
+      "binance_symbol": "AKTUSDT"
+    },
+    {
+      "symbol": "ALCH",
+      "binance_symbol": "ALCHUSDT"
+    },
+    {
+      "symbol": "ALGO",
+      "binance_symbol": "ALGOUSDT"
+    },
+    {
+      "symbol": "ALICE",
+      "binance_symbol": "ALICEUSDT"
+    },
+    {
+      "symbol": "ALL",
+      "binance_symbol": "ALLUSDT"
+    },
+    {
+      "symbol": "ALLO",
+      "binance_symbol": "ALLOUSDT"
+    },
+    {
+      "symbol": "ALPINE",
+      "binance_symbol": "ALPINEUSDT"
+    },
+    {
+      "symbol": "ALT",
+      "binance_symbol": "ALTUSDT"
+    },
+    {
+      "symbol": "ANIME",
+      "binance_symbol": "ANIMEUSDT"
+    },
+    {
+      "symbol": "ANKR",
+      "binance_symbol": "ANKRUSDT"
+    },
+    {
+      "symbol": "APE",
+      "binance_symbol": "APEUSDT"
+    },
+    {
+      "symbol": "API3",
+      "binance_symbol": "API3USDT"
+    },
+    {
+      "symbol": "APR",
+      "binance_symbol": "APRUSDT"
+    },
+    {
+      "symbol": "APT",
+      "binance_symbol": "APTUSDT"
+    },
+    {
+      "symbol": "AR",
+      "binance_symbol": "ARUSDT"
+    },
+    {
+      "symbol": "ARB",
+      "binance_symbol": "ARBUSDT"
+    },
+    {
+      "symbol": "ARC",
+      "binance_symbol": "ARCUSDT"
+    },
+    {
+      "symbol": "ARIA",
+      "binance_symbol": "ARIAUSDT"
+    },
+    {
+      "symbol": "ARK",
+      "binance_symbol": "ARKUSDT"
+    },
+    {
+      "symbol": "ARKM",
+      "binance_symbol": "ARKMUSDT"
+    },
+    {
+      "symbol": "ARPA",
+      "binance_symbol": "ARPAUSDT"
+    },
+    {
+      "symbol": "ASR",
+      "binance_symbol": "ASRUSDT"
+    },
+    {
+      "symbol": "ASTER",
+      "binance_symbol": "ASTERUSDT"
+    },
+    {
+      "symbol": "ASTR",
+      "binance_symbol": "ASTRUSDT"
+    },
+    {
+      "symbol": "AT",
+      "binance_symbol": "ATUSDT"
+    },
+    {
+      "symbol": "ATH",
+      "binance_symbol": "ATHUSDT"
+    },
+    {
+      "symbol": "ATOM",
+      "binance_symbol": "ATOMUSDT"
+    },
+    {
+      "symbol": "AUCTION",
+      "binance_symbol": "AUCTIONUSDT"
+    },
+    {
+      "symbol": "AVA",
+      "binance_symbol": "AVAUSDT"
+    },
+    {
+      "symbol": "AVAAI",
+      "binance_symbol": "AVAAIUSDT"
+    },
+    {
+      "symbol": "AVAX",
+      "binance_symbol": "AVAXUSDT"
+    },
+    {
+      "symbol": "AVNT",
+      "binance_symbol": "AVNTUSDT"
+    },
+    {
+      "symbol": "AWE",
+      "binance_symbol": "AWEUSDT"
+    },
+    {
+      "symbol": "AXL",
+      "binance_symbol": "AXLUSDT"
+    },
+    {
+      "symbol": "AXS",
+      "binance_symbol": "AXSUSDT"
+    },
+    {
+      "symbol": "AZTEC",
+      "binance_symbol": "AZTECUSDT"
+    },
+    {
+      "symbol": "B",
+      "binance_symbol": "BUSDT"
+    },
+    {
+      "symbol": "B2",
+      "binance_symbol": "B2USDT"
+    },
+    {
+      "symbol": "BABY",
+      "binance_symbol": "BABYUSDT"
+    },
+    {
+      "symbol": "BAN",
+      "binance_symbol": "BANUSDT"
+    },
+    {
+      "symbol": "BANANA",
+      "binance_symbol": "BANANAUSDT"
+    },
+    {
+      "symbol": "BANANAS31",
+      "binance_symbol": "BANANAS31USDT"
+    },
+    {
+      "symbol": "BAND",
+      "binance_symbol": "BANDUSDT"
+    },
+    {
+      "symbol": "BANK",
+      "binance_symbol": "BANKUSDT"
+    },
+    {
+      "symbol": "BARD",
+      "binance_symbol": "BARDUSDT"
+    },
+    {
+      "symbol": "BAS",
+      "binance_symbol": "BASUSDT"
+    },
+    {
+      "symbol": "BASED",
+      "binance_symbol": "BASEDUSDT"
+    },
+    {
+      "symbol": "BAT",
+      "binance_symbol": "BATUSDT"
+    },
+    {
+      "symbol": "BB",
+      "binance_symbol": "BBUSDT"
+    },
+    {
+      "symbol": "BCH",
+      "binance_symbol": "BCHUSDT"
+    },
+    {
+      "symbol": "BEAMX",
+      "binance_symbol": "BEAMXUSDT"
+    },
+    {
+      "symbol": "BEAT",
+      "binance_symbol": "BEATUSDT"
+    },
+    {
+      "symbol": "BEL",
+      "binance_symbol": "BELUSDT"
+    },
+    {
+      "symbol": "BERA",
+      "binance_symbol": "BERAUSDT"
+    },
+    {
+      "symbol": "BICO",
+      "binance_symbol": "BICOUSDT"
+    },
+    {
+      "symbol": "BIGTIME",
+      "binance_symbol": "BIGTIMEUSDT"
+    },
+    {
+      "symbol": "BILL",
+      "binance_symbol": "BILLUSDT"
+    },
+    {
+      "symbol": "BIO",
+      "binance_symbol": "BIOUSDT"
+    },
+    {
+      "symbol": "BIRB",
+      "binance_symbol": "BIRBUSDT"
+    },
+    {
+      "symbol": "BLESS",
+      "binance_symbol": "BLESSUSDT"
+    },
+    {
+      "symbol": "BLUAI",
+      "binance_symbol": "BLUAIUSDT"
+    },
+    {
+      "symbol": "BLUR",
+      "binance_symbol": "BLURUSDT"
+    },
+    {
+      "symbol": "BMT",
+      "binance_symbol": "BMTUSDT"
+    },
+    {
+      "symbol": "BNB",
+      "binance_symbol": "BNBUSDT"
+    },
+    {
+      "symbol": "BNT",
+      "binance_symbol": "BNTUSDT"
+    },
+    {
+      "symbol": "BOME",
+      "binance_symbol": "BOMEUSDT"
+    },
+    {
+      "symbol": "BR",
+      "binance_symbol": "BRUSDT"
+    },
+    {
+      "symbol": "BRETT",
+      "binance_symbol": "BRETTUSDT"
+    },
+    {
+      "symbol": "BREV",
+      "binance_symbol": "BREVUSDT"
+    },
+    {
+      "symbol": "BROCCOLI714",
+      "binance_symbol": "BROCCOLI714USDT"
+    },
+    {
+      "symbol": "BROCCOLIF3B",
+      "binance_symbol": "BROCCOLIF3BUSDT"
+    },
+    {
+      "symbol": "BSB",
+      "binance_symbol": "BSBUSDT"
+    },
+    {
+      "symbol": "BSV",
+      "binance_symbol": "BSVUSDT"
+    },
+    {
+      "symbol": "BTC",
+      "binance_symbol": "BTCUSDT",
+      "cg_id": "bitcoin"
+    },
+    {
+      "symbol": "BTCDOM",
+      "binance_symbol": "BTCDOMUSDT"
+    },
+    {
+      "symbol": "BTR",
+      "binance_symbol": "BTRUSDT"
+    },
+    {
+      "symbol": "BTW",
+      "binance_symbol": "BTWUSDT"
+    },
+    {
+      "symbol": "BULLA",
+      "binance_symbol": "BULLAUSDT"
+    },
+    {
+      "symbol": "C",
+      "binance_symbol": "CUSDT"
+    },
+    {
+      "symbol": "C98",
+      "binance_symbol": "C98USDT"
+    },
+    {
+      "symbol": "CAKE",
+      "binance_symbol": "CAKEUSDT"
+    },
+    {
+      "symbol": "CARV",
+      "binance_symbol": "CARVUSDT"
+    },
+    {
+      "symbol": "CATI",
+      "binance_symbol": "CATIUSDT"
+    },
+    {
+      "symbol": "CC",
+      "binance_symbol": "CCUSDT"
+    },
+    {
+      "symbol": "CELO",
+      "binance_symbol": "CELOUSDT"
+    },
+    {
+      "symbol": "CELR",
+      "binance_symbol": "CELRUSDT"
+    },
+    {
+      "symbol": "CETUS",
+      "binance_symbol": "CETUSUSDT"
+    },
+    {
+      "symbol": "CFG",
+      "binance_symbol": "CFGUSDT"
+    },
+    {
+      "symbol": "CFX",
+      "binance_symbol": "CFXUSDT"
+    },
+    {
+      "symbol": "CGPT",
+      "binance_symbol": "CGPTUSDT"
+    },
+    {
+      "symbol": "CHILLGUY",
+      "binance_symbol": "CHILLGUYUSDT"
+    },
+    {
+      "symbol": "CHIP",
+      "binance_symbol": "CHIPUSDT"
+    },
+    {
+      "symbol": "CHR",
+      "binance_symbol": "CHRUSDT"
+    },
+    {
+      "symbol": "CHZ",
+      "binance_symbol": "CHZUSDT"
+    },
+    {
+      "symbol": "CKB",
+      "binance_symbol": "CKBUSDT"
+    },
+    {
+      "symbol": "CLANKER",
+      "binance_symbol": "CLANKERUSDT"
+    },
+    {
+      "symbol": "CLO",
+      "binance_symbol": "CLOUSDT"
+    },
+    {
+      "symbol": "COAI",
+      "binance_symbol": "COAIUSDT"
+    },
+    {
+      "symbol": "COLLECT",
+      "binance_symbol": "COLLECTUSDT"
+    },
+    {
+      "symbol": "COMP",
+      "binance_symbol": "COMPUSDT"
+    },
+    {
+      "symbol": "COOKIE",
+      "binance_symbol": "COOKIEUSDT"
+    },
+    {
+      "symbol": "COS",
+      "binance_symbol": "COSUSDT"
+    },
+    {
+      "symbol": "COTI",
+      "binance_symbol": "COTIUSDT"
+    },
+    {
+      "symbol": "COW",
+      "binance_symbol": "COWUSDT"
+    },
+    {
+      "symbol": "CROSS",
+      "binance_symbol": "CROSSUSDT"
+    },
+    {
+      "symbol": "CRV",
+      "binance_symbol": "CRVUSDT"
+    },
+    {
+      "symbol": "CTK",
+      "binance_symbol": "CTKUSDT"
+    },
+    {
+      "symbol": "CTR",
+      "binance_symbol": "CTRUSDT"
+    },
+    {
+      "symbol": "CTSI",
+      "binance_symbol": "CTSIUSDT"
+    },
+    {
+      "symbol": "CVC",
+      "binance_symbol": "CVCUSDT"
+    },
+    {
+      "symbol": "CVX",
+      "binance_symbol": "CVXUSDT"
+    },
+    {
+      "symbol": "CYBER",
+      "binance_symbol": "CYBERUSDT"
+    },
+    {
+      "symbol": "CYS",
+      "binance_symbol": "CYSUSDT"
+    },
+    {
+      "symbol": "D",
+      "binance_symbol": "DUSDT"
+    },
+    {
+      "symbol": "DASH",
+      "binance_symbol": "DASHUSDT"
+    },
+    {
+      "symbol": "DEEP",
+      "binance_symbol": "DEEPUSDT"
+    },
+    {
+      "symbol": "DEXE",
+      "binance_symbol": "DEXEUSDT"
+    },
+    {
+      "symbol": "DIA",
+      "binance_symbol": "DIAUSDT"
+    },
+    {
+      "symbol": "DODOX",
+      "binance_symbol": "DODOXUSDT"
+    },
+    {
+      "symbol": "DOGE",
+      "binance_symbol": "DOGEUSDT"
+    },
+    {
+      "symbol": "DOGS",
+      "binance_symbol": "DOGSUSDT"
+    },
+    {
+      "symbol": "DOLO",
+      "binance_symbol": "DOLOUSDT"
+    },
+    {
+      "symbol": "DOOD",
+      "binance_symbol": "DOODUSDT"
+    },
+    {
+      "symbol": "DOT",
+      "binance_symbol": "DOTUSDT"
+    },
+    {
+      "symbol": "DRIFT",
+      "binance_symbol": "DRIFTUSDT"
+    },
+    {
+      "symbol": "DUSK",
+      "binance_symbol": "DUSKUSDT"
+    },
+    {
+      "symbol": "DYDX",
+      "binance_symbol": "DYDXUSDT"
+    },
+    {
+      "symbol": "DYM",
+      "binance_symbol": "DYMUSDT"
+    },
+    {
+      "symbol": "EDEN",
+      "binance_symbol": "EDENUSDT"
+    },
+    {
+      "symbol": "EDGE",
+      "binance_symbol": "EDGEUSDT"
+    },
+    {
+      "symbol": "EDU",
+      "binance_symbol": "EDUUSDT"
+    },
+    {
+      "symbol": "EGLD",
+      "binance_symbol": "EGLDUSDT"
+    },
+    {
+      "symbol": "EIGEN",
+      "binance_symbol": "EIGENUSDT"
+    },
+    {
+      "symbol": "ELSA",
+      "binance_symbol": "ELSAUSDT"
+    },
+    {
+      "symbol": "ENA",
+      "binance_symbol": "ENAUSDT",
+      "cg_id": "ethena",
+      "defillama_slug": "ethena"
+    },
+    {
+      "symbol": "ENJ",
+      "binance_symbol": "ENJUSDT"
+    },
+    {
+      "symbol": "ENS",
+      "binance_symbol": "ENSUSDT"
+    },
+    {
+      "symbol": "ENSO",
+      "binance_symbol": "ENSOUSDT"
+    },
+    {
+      "symbol": "EPIC",
+      "binance_symbol": "EPICUSDT"
+    },
+    {
+      "symbol": "ERA",
+      "binance_symbol": "ERAUSDT"
+    },
+    {
+      "symbol": "ESP",
+      "binance_symbol": "ESPUSDT"
+    },
+    {
+      "symbol": "ESPORTS",
+      "binance_symbol": "ESPORTSUSDT"
+    },
+    {
+      "symbol": "ETC",
+      "binance_symbol": "ETCUSDT"
+    },
+    {
+      "symbol": "ETH",
+      "binance_symbol": "ETHUSDT",
+      "cg_id": "ethereum"
+    },
+    {
+      "symbol": "ETHFI",
+      "binance_symbol": "ETHFIUSDT"
+    },
+    {
+      "symbol": "ETHW",
+      "binance_symbol": "ETHWUSDT"
+    },
+    {
+      "symbol": "EUL",
+      "binance_symbol": "EULUSDT"
+    },
+    {
+      "symbol": "EVAA",
+      "binance_symbol": "EVAAUSDT"
+    },
+    {
+      "symbol": "F",
+      "binance_symbol": "FUSDT"
+    },
+    {
+      "symbol": "FARTCOIN",
+      "binance_symbol": "FARTCOINUSDT"
+    },
+    {
+      "symbol": "FET",
+      "binance_symbol": "FETUSDT"
+    },
+    {
+      "symbol": "FF",
+      "binance_symbol": "FFUSDT"
+    },
+    {
+      "symbol": "FHE",
+      "binance_symbol": "FHEUSDT"
+    },
+    {
+      "symbol": "FIDA",
+      "binance_symbol": "FIDAUSDT"
+    },
+    {
+      "symbol": "FIGHT",
+      "binance_symbol": "FIGHTUSDT"
+    },
+    {
+      "symbol": "FIL",
+      "binance_symbol": "FILUSDT"
+    },
+    {
+      "symbol": "FLOCK",
+      "binance_symbol": "FLOCKUSDT"
+    },
+    {
+      "symbol": "FLOW",
+      "binance_symbol": "FLOWUSDT"
+    },
+    {
+      "symbol": "FLUID",
+      "binance_symbol": "FLUIDUSDT"
+    },
+    {
+      "symbol": "FLUX",
+      "binance_symbol": "FLUXUSDT"
+    },
+    {
+      "symbol": "FOGO",
+      "binance_symbol": "FOGOUSDT"
+    },
+    {
+      "symbol": "FOLKS",
+      "binance_symbol": "FOLKSUSDT"
+    },
+    {
+      "symbol": "FORM",
+      "binance_symbol": "FORMUSDT"
+    },
+    {
+      "symbol": "FRAX",
+      "binance_symbol": "FRAXUSDT"
+    },
+    {
+      "symbol": "G",
+      "binance_symbol": "GUSDT"
+    },
+    {
+      "symbol": "GALA",
+      "binance_symbol": "GALAUSDT"
+    },
+    {
+      "symbol": "GAS",
+      "binance_symbol": "GASUSDT"
+    },
+    {
+      "symbol": "GENIUS",
+      "binance_symbol": "GENIUSUSDT"
+    },
+    {
+      "symbol": "GIGGLE",
+      "binance_symbol": "GIGGLEUSDT"
+    },
+    {
+      "symbol": "GLM",
+      "binance_symbol": "GLMUSDT"
+    },
+    {
+      "symbol": "GMT",
+      "binance_symbol": "GMTUSDT"
+    },
+    {
+      "symbol": "GMX",
+      "binance_symbol": "GMXUSDT"
+    },
+    {
+      "symbol": "GOAT",
+      "binance_symbol": "GOATUSDT"
+    },
+    {
+      "symbol": "GPS",
+      "binance_symbol": "GPSUSDT"
+    },
+    {
+      "symbol": "GRASS",
+      "binance_symbol": "GRASSUSDT"
+    },
+    {
+      "symbol": "GRIFFAIN",
+      "binance_symbol": "GRIFFAINUSDT"
+    },
+    {
+      "symbol": "GRT",
+      "binance_symbol": "GRTUSDT"
+    },
+    {
+      "symbol": "GTC",
+      "binance_symbol": "GTCUSDT"
+    },
+    {
+      "symbol": "GUA",
+      "binance_symbol": "GUAUSDT"
+    },
+    {
+      "symbol": "GUN",
+      "binance_symbol": "GUNUSDT"
+    },
+    {
+      "symbol": "GWEI",
+      "binance_symbol": "GWEIUSDT"
+    },
+    {
+      "symbol": "H",
+      "binance_symbol": "HUSDT"
+    },
+    {
+      "symbol": "HAEDAL",
+      "binance_symbol": "HAEDALUSDT"
+    },
+    {
+      "symbol": "HANA",
+      "binance_symbol": "HANAUSDT"
+    },
+    {
+      "symbol": "HBAR",
+      "binance_symbol": "HBARUSDT"
+    },
+    {
+      "symbol": "HEI",
+      "binance_symbol": "HEIUSDT"
+    },
+    {
+      "symbol": "HEMI",
+      "binance_symbol": "HEMIUSDT"
+    },
+    {
+      "symbol": "HFT",
+      "binance_symbol": "HFTUSDT"
+    },
+    {
+      "symbol": "HIGH",
+      "binance_symbol": "HIGHUSDT"
+    },
+    {
+      "symbol": "HIVE",
+      "binance_symbol": "HIVEUSDT"
+    },
+    {
+      "symbol": "HMSTR",
+      "binance_symbol": "HMSTRUSDT"
+    },
+    {
+      "symbol": "HOLO",
+      "binance_symbol": "HOLOUSDT"
+    },
+    {
+      "symbol": "HOME",
+      "binance_symbol": "HOMEUSDT"
+    },
+    {
+      "symbol": "HOT",
+      "binance_symbol": "HOTUSDT"
+    },
+    {
+      "symbol": "HUMA",
+      "binance_symbol": "HUMAUSDT"
+    },
+    {
+      "symbol": "HYPE",
+      "binance_symbol": "HYPEUSDT"
+    },
+    {
+      "symbol": "HYPER",
+      "binance_symbol": "HYPERUSDT"
+    },
+    {
+      "symbol": "ICNT",
+      "binance_symbol": "ICNTUSDT"
+    },
+    {
+      "symbol": "ICP",
+      "binance_symbol": "ICPUSDT"
+    },
+    {
+      "symbol": "ICX",
+      "binance_symbol": "ICXUSDT"
+    },
+    {
+      "symbol": "ID",
+      "binance_symbol": "IDUSDT"
+    },
+    {
+      "symbol": "IDOL",
+      "binance_symbol": "IDOLUSDT"
+    },
+    {
+      "symbol": "ILV",
+      "binance_symbol": "ILVUSDT"
+    },
+    {
+      "symbol": "IMX",
+      "binance_symbol": "IMXUSDT"
+    },
+    {
+      "symbol": "IN",
+      "binance_symbol": "INUSDT"
+    },
+    {
+      "symbol": "INIT",
+      "binance_symbol": "INITUSDT"
+    },
+    {
+      "symbol": "INJ",
+      "binance_symbol": "INJUSDT"
+    },
+    {
+      "symbol": "INX",
+      "binance_symbol": "INXUSDT"
+    },
+    {
+      "symbol": "IO",
+      "binance_symbol": "IOUSDT"
+    },
+    {
+      "symbol": "IOST",
+      "binance_symbol": "IOSTUSDT"
+    },
+    {
+      "symbol": "IOTA",
+      "binance_symbol": "IOTAUSDT"
+    },
+    {
+      "symbol": "IOTX",
+      "binance_symbol": "IOTXUSDT"
+    },
+    {
+      "symbol": "IP",
+      "binance_symbol": "IPUSDT"
+    },
+    {
+      "symbol": "IRYS",
+      "binance_symbol": "IRYSUSDT"
+    },
+    {
+      "symbol": "JASMY",
+      "binance_symbol": "JASMYUSDT"
+    },
+    {
+      "symbol": "JCT",
+      "binance_symbol": "JCTUSDT"
+    },
+    {
+      "symbol": "JELLYJELLY",
+      "binance_symbol": "JELLYJELLYUSDT"
+    },
+    {
+      "symbol": "JOE",
+      "binance_symbol": "JOEUSDT"
+    },
+    {
+      "symbol": "JST",
+      "binance_symbol": "JSTUSDT"
+    },
+    {
+      "symbol": "JTO",
+      "binance_symbol": "JTOUSDT"
+    },
+    {
+      "symbol": "JUP",
+      "binance_symbol": "JUPUSDT",
+      "cg_id": "jupiter-exchange-solana",
+      "defillama_slug": "jupiter-aggregator"
+    },
+    {
+      "symbol": "KAIA",
+      "binance_symbol": "KAIAUSDT"
+    },
+    {
+      "symbol": "KAITO",
+      "binance_symbol": "KAITOUSDT"
+    },
+    {
+      "symbol": "KAS",
+      "binance_symbol": "KASUSDT"
+    },
+    {
+      "symbol": "KAT",
+      "binance_symbol": "KATUSDT"
+    },
+    {
+      "symbol": "KAVA",
+      "binance_symbol": "KAVAUSDT"
+    },
+    {
+      "symbol": "KERNEL",
+      "binance_symbol": "KERNELUSDT"
+    },
+    {
+      "symbol": "KGEN",
+      "binance_symbol": "KGENUSDT"
+    },
+    {
+      "symbol": "KITE",
+      "binance_symbol": "KITEUSDT"
+    },
+    {
+      "symbol": "KMNO",
+      "binance_symbol": "KMNOUSDT"
+    },
+    {
+      "symbol": "KNC",
+      "binance_symbol": "KNCUSDT"
+    },
+    {
+      "symbol": "KOMA",
+      "binance_symbol": "KOMAUSDT"
+    },
+    {
+      "symbol": "KSM",
+      "binance_symbol": "KSMUSDT"
+    },
+    {
+      "symbol": "LA",
+      "binance_symbol": "LAUSDT"
+    },
+    {
+      "symbol": "LAB",
+      "binance_symbol": "LABUSDT"
+    },
+    {
+      "symbol": "LAYER",
+      "binance_symbol": "LAYERUSDT"
+    },
+    {
+      "symbol": "LDO",
+      "binance_symbol": "LDOUSDT"
+    },
+    {
+      "symbol": "LIGHT",
+      "binance_symbol": "LIGHTUSDT"
+    },
+    {
+      "symbol": "LINEA",
+      "binance_symbol": "LINEAUSDT"
+    },
+    {
+      "symbol": "LINK",
+      "binance_symbol": "LINKUSDT"
+    },
+    {
+      "symbol": "LISTA",
+      "binance_symbol": "LISTAUSDT"
+    },
+    {
+      "symbol": "LIT",
+      "binance_symbol": "LITUSDT"
+    },
+    {
+      "symbol": "LPT",
+      "binance_symbol": "LPTUSDT"
+    },
+    {
+      "symbol": "LQTY",
+      "binance_symbol": "LQTYUSDT"
+    },
+    {
+      "symbol": "LSK",
+      "binance_symbol": "LSKUSDT"
+    },
+    {
+      "symbol": "LTC",
+      "binance_symbol": "LTCUSDT"
+    },
+    {
+      "symbol": "LUMIA",
+      "binance_symbol": "LUMIAUSDT"
+    },
+    {
+      "symbol": "LUNA2",
+      "binance_symbol": "LUNA2USDT"
+    },
+    {
+      "symbol": "LYN",
+      "binance_symbol": "LYNUSDT"
+    },
+    {
+      "symbol": "M",
+      "binance_symbol": "MUSDT"
+    },
+    {
+      "symbol": "MAGIC",
+      "binance_symbol": "MAGICUSDT"
+    },
+    {
+      "symbol": "MAGMA",
+      "binance_symbol": "MAGMAUSDT"
+    },
+    {
+      "symbol": "MANA",
+      "binance_symbol": "MANAUSDT"
+    },
+    {
+      "symbol": "MANTA",
+      "binance_symbol": "MANTAUSDT"
+    },
+    {
+      "symbol": "MANTRA",
+      "binance_symbol": "MANTRAUSDT"
+    },
+    {
+      "symbol": "MASK",
+      "binance_symbol": "MASKUSDT"
+    },
+    {
+      "symbol": "MAV",
+      "binance_symbol": "MAVUSDT"
+    },
+    {
+      "symbol": "MAVIA",
+      "binance_symbol": "MAVIAUSDT"
+    },
+    {
+      "symbol": "MBOX",
+      "binance_symbol": "MBOXUSDT"
+    },
+    {
+      "symbol": "ME",
+      "binance_symbol": "MEUSDT"
+    },
+    {
+      "symbol": "MEGA",
+      "binance_symbol": "MEGAUSDT"
+    },
+    {
+      "symbol": "MELANIA",
+      "binance_symbol": "MELANIAUSDT"
+    },
+    {
+      "symbol": "MEME",
+      "binance_symbol": "MEMEUSDT"
+    },
+    {
+      "symbol": "MERL",
+      "binance_symbol": "MERLUSDT"
+    },
+    {
+      "symbol": "MET",
+      "binance_symbol": "METUSDT"
+    },
+    {
+      "symbol": "METIS",
+      "binance_symbol": "METISUSDT"
+    },
+    {
+      "symbol": "MEW",
+      "binance_symbol": "MEWUSDT"
+    },
+    {
+      "symbol": "MINA",
+      "binance_symbol": "MINAUSDT"
+    },
+    {
+      "symbol": "MIRA",
+      "binance_symbol": "MIRAUSDT"
+    },
+    {
+      "symbol": "MITO",
+      "binance_symbol": "MITOUSDT"
+    },
+    {
+      "symbol": "MMT",
+      "binance_symbol": "MMTUSDT"
+    },
+    {
+      "symbol": "MOCA",
+      "binance_symbol": "MOCAUSDT"
+    },
+    {
+      "symbol": "MON",
+      "binance_symbol": "MONUSDT"
+    },
+    {
+      "symbol": "MOODENG",
+      "binance_symbol": "MOODENGUSDT"
+    },
+    {
+      "symbol": "MORPHO",
+      "binance_symbol": "MORPHOUSDT"
+    },
+    {
+      "symbol": "MOVE",
+      "binance_symbol": "MOVEUSDT"
+    },
+    {
+      "symbol": "MOVR",
+      "binance_symbol": "MOVRUSDT"
+    },
+    {
+      "symbol": "MTL",
+      "binance_symbol": "MTLUSDT"
+    },
+    {
+      "symbol": "MUBARAK",
+      "binance_symbol": "MUBARAKUSDT"
+    },
+    {
+      "symbol": "MYX",
+      "binance_symbol": "MYXUSDT"
+    },
+    {
+      "symbol": "NAORIS",
+      "binance_symbol": "NAORISUSDT"
+    },
+    {
+      "symbol": "NEAR",
+      "binance_symbol": "NEARUSDT"
+    },
+    {
+      "symbol": "NEIRO",
+      "binance_symbol": "NEIROUSDT"
+    },
+    {
+      "symbol": "NEO",
+      "binance_symbol": "NEOUSDT"
+    },
+    {
+      "symbol": "NEWT",
+      "binance_symbol": "NEWTUSDT"
+    },
+    {
+      "symbol": "NFP",
+      "binance_symbol": "NFPUSDT"
+    },
+    {
+      "symbol": "NIGHT",
+      "binance_symbol": "NIGHTUSDT"
+    },
+    {
+      "symbol": "NIL",
+      "binance_symbol": "NILUSDT"
+    },
+    {
+      "symbol": "NMR",
+      "binance_symbol": "NMRUSDT"
+    },
+    {
+      "symbol": "NOM",
+      "binance_symbol": "NOMUSDT"
+    },
+    {
+      "symbol": "NOT",
+      "binance_symbol": "NOTUSDT"
+    },
+    {
+      "symbol": "NXPC",
+      "binance_symbol": "NXPCUSDT"
+    },
+    {
+      "symbol": "OG",
+      "binance_symbol": "OGUSDT"
+    },
+    {
+      "symbol": "OGN",
+      "binance_symbol": "OGNUSDT"
+    },
+    {
+      "symbol": "ON",
+      "binance_symbol": "ONUSDT"
+    },
+    {
+      "symbol": "ONDO",
+      "binance_symbol": "ONDOUSDT"
+    },
+    {
+      "symbol": "ONE",
+      "binance_symbol": "ONEUSDT"
+    },
+    {
+      "symbol": "ONG",
+      "binance_symbol": "ONGUSDT"
+    },
+    {
+      "symbol": "ONT",
+      "binance_symbol": "ONTUSDT"
+    },
+    {
+      "symbol": "OP",
+      "binance_symbol": "OPUSDT"
+    },
+    {
+      "symbol": "OPEN",
+      "binance_symbol": "OPENUSDT"
+    },
+    {
+      "symbol": "OPG",
+      "binance_symbol": "OPGUSDT"
+    },
+    {
+      "symbol": "OPN",
+      "binance_symbol": "OPNUSDT"
+    },
+    {
+      "symbol": "ORCA",
+      "binance_symbol": "ORCAUSDT"
+    },
+    {
+      "symbol": "ORDER",
+      "binance_symbol": "ORDERUSDT"
+    },
+    {
+      "symbol": "ORDI",
+      "binance_symbol": "ORDIUSDT"
+    },
+    {
+      "symbol": "PARTI",
+      "binance_symbol": "PARTIUSDT"
+    },
+    {
+      "symbol": "PAXG",
+      "binance_symbol": "PAXGUSDT"
+    },
+    {
+      "symbol": "PENDLE",
+      "binance_symbol": "PENDLEUSDT",
+      "cg_id": "pendle",
+      "defillama_slug": "pendle"
+    },
+    {
+      "symbol": "PENGU",
+      "binance_symbol": "PENGUUSDT"
+    },
+    {
+      "symbol": "PEOPLE",
+      "binance_symbol": "PEOPLEUSDT"
+    },
+    {
+      "symbol": "PHA",
+      "binance_symbol": "PHAUSDT"
+    },
+    {
+      "symbol": "PHAROS",
+      "binance_symbol": "PHAROSUSDT"
+    },
+    {
+      "symbol": "PIEVERSE",
+      "binance_symbol": "PIEVERSEUSDT"
+    },
+    {
+      "symbol": "PIPPIN",
+      "binance_symbol": "PIPPINUSDT"
+    },
+    {
+      "symbol": "PIXEL",
+      "binance_symbol": "PIXELUSDT"
+    },
+    {
+      "symbol": "PLAY",
+      "binance_symbol": "PLAYUSDT"
+    },
+    {
+      "symbol": "PLUME",
+      "binance_symbol": "PLUMEUSDT"
+    },
+    {
+      "symbol": "PNUT",
+      "binance_symbol": "PNUTUSDT"
+    },
+    {
+      "symbol": "POL",
+      "binance_symbol": "POLUSDT"
+    },
+    {
+      "symbol": "POLYX",
+      "binance_symbol": "POLYXUSDT"
+    },
+    {
+      "symbol": "POPCAT",
+      "binance_symbol": "POPCATUSDT"
+    },
+    {
+      "symbol": "PORTAL",
+      "binance_symbol": "PORTALUSDT"
+    },
+    {
+      "symbol": "POWER",
+      "binance_symbol": "POWERUSDT"
+    },
+    {
+      "symbol": "POWR",
+      "binance_symbol": "POWRUSDT"
+    },
+    {
+      "symbol": "PRL",
+      "binance_symbol": "PRLUSDT"
+    },
+    {
+      "symbol": "PROM",
+      "binance_symbol": "PROMUSDT"
+    },
+    {
+      "symbol": "PROMPT",
+      "binance_symbol": "PROMPTUSDT"
+    },
+    {
+      "symbol": "PROVE",
+      "binance_symbol": "PROVEUSDT"
+    },
+    {
+      "symbol": "PTB",
+      "binance_symbol": "PTBUSDT"
+    },
+    {
+      "symbol": "PUMP",
+      "binance_symbol": "PUMPUSDT"
+    },
+    {
+      "symbol": "PUMPBTC",
+      "binance_symbol": "PUMPBTCUSDT"
+    },
+    {
+      "symbol": "PUNDIX",
+      "binance_symbol": "PUNDIXUSDT"
+    },
+    {
+      "symbol": "PYTH",
+      "binance_symbol": "PYTHUSDT"
+    },
+    {
+      "symbol": "Q",
+      "binance_symbol": "QUSDT"
+    },
+    {
+      "symbol": "QNT",
+      "binance_symbol": "QNTUSDT"
+    },
+    {
+      "symbol": "QTUM",
+      "binance_symbol": "QTUMUSDT"
+    },
+    {
+      "symbol": "RARE",
+      "binance_symbol": "RAREUSDT"
+    },
+    {
+      "symbol": "RAVE",
+      "binance_symbol": "RAVEUSDT"
+    },
+    {
+      "symbol": "RAYSOL",
+      "binance_symbol": "RAYSOLUSDT"
+    },
+    {
+      "symbol": "RECALL",
+      "binance_symbol": "RECALLUSDT"
+    },
+    {
+      "symbol": "RED",
+      "binance_symbol": "REDUSDT"
+    },
+    {
+      "symbol": "RENDER",
+      "binance_symbol": "RENDERUSDT"
+    },
+    {
+      "symbol": "RESOLV",
+      "binance_symbol": "RESOLVUSDT"
+    },
+    {
+      "symbol": "REZ",
+      "binance_symbol": "REZUSDT"
+    },
+    {
+      "symbol": "RIF",
+      "binance_symbol": "RIFUSDT"
+    },
+    {
+      "symbol": "RIVER",
+      "binance_symbol": "RIVERUSDT"
+    },
+    {
+      "symbol": "RLC",
+      "binance_symbol": "RLCUSDT"
+    },
+    {
+      "symbol": "ROBO",
+      "binance_symbol": "ROBOUSDT"
+    },
+    {
+      "symbol": "RONIN",
+      "binance_symbol": "RONINUSDT"
+    },
+    {
+      "symbol": "ROSE",
+      "binance_symbol": "ROSEUSDT"
+    },
+    {
+      "symbol": "RPL",
+      "binance_symbol": "RPLUSDT"
+    },
+    {
+      "symbol": "RSR",
+      "binance_symbol": "RSRUSDT"
+    },
+    {
+      "symbol": "RUNE",
+      "binance_symbol": "RUNEUSDT"
+    },
+    {
+      "symbol": "RVN",
+      "binance_symbol": "RVNUSDT"
+    },
+    {
+      "symbol": "S",
+      "binance_symbol": "SUSDT"
+    },
+    {
+      "symbol": "SAFE",
+      "binance_symbol": "SAFEUSDT"
+    },
+    {
+      "symbol": "SAGA",
+      "binance_symbol": "SAGAUSDT"
+    },
+    {
+      "symbol": "SAHARA",
+      "binance_symbol": "SAHARAUSDT"
+    },
+    {
+      "symbol": "SAND",
+      "binance_symbol": "SANDUSDT"
+    },
+    {
+      "symbol": "SANTOS",
+      "binance_symbol": "SANTOSUSDT"
+    },
+    {
+      "symbol": "SAPIEN",
+      "binance_symbol": "SAPIENUSDT"
+    },
+    {
+      "symbol": "SCR",
+      "binance_symbol": "SCRUSDT"
+    },
+    {
+      "symbol": "SCRT",
+      "binance_symbol": "SCRTUSDT"
+    },
+    {
+      "symbol": "SEI",
+      "binance_symbol": "SEIUSDT"
+    },
+    {
+      "symbol": "SENT",
+      "binance_symbol": "SENTUSDT"
+    },
+    {
+      "symbol": "SFP",
+      "binance_symbol": "SFPUSDT"
+    },
+    {
+      "symbol": "SHELL",
+      "binance_symbol": "SHELLUSDT"
+    },
+    {
+      "symbol": "SIGN",
+      "binance_symbol": "SIGNUSDT"
+    },
+    {
+      "symbol": "SIREN",
+      "binance_symbol": "SIRENUSDT"
+    },
+    {
+      "symbol": "SKL",
+      "binance_symbol": "SKLUSDT"
+    },
+    {
+      "symbol": "SKR",
+      "binance_symbol": "SKRUSDT"
+    },
+    {
+      "symbol": "SKY",
+      "binance_symbol": "SKYUSDT"
+    },
+    {
+      "symbol": "SKYAI",
+      "binance_symbol": "SKYAIUSDT"
+    },
+    {
+      "symbol": "SLP",
+      "binance_symbol": "SLPUSDT"
+    },
+    {
+      "symbol": "SLX",
+      "binance_symbol": "SLXUSDT"
+    },
+    {
+      "symbol": "SNX",
+      "binance_symbol": "SNXUSDT"
+    },
+    {
+      "symbol": "SOL",
+      "binance_symbol": "SOLUSDT",
+      "cg_id": "solana"
+    },
+    {
+      "symbol": "SOLV",
+      "binance_symbol": "SOLVUSDT"
+    },
+    {
+      "symbol": "SOMI",
+      "binance_symbol": "SOMIUSDT"
+    },
+    {
+      "symbol": "SONIC",
+      "binance_symbol": "SONICUSDT"
+    },
+    {
+      "symbol": "SOON",
+      "binance_symbol": "SOONUSDT"
+    },
+    {
+      "symbol": "SOPH",
+      "binance_symbol": "SOPHUSDT"
+    },
+    {
+      "symbol": "SPACE",
+      "binance_symbol": "SPACEUSDT"
+    },
+    {
+      "symbol": "SPELL",
+      "binance_symbol": "SPELLUSDT"
+    },
+    {
+      "symbol": "SPK",
+      "binance_symbol": "SPKUSDT"
+    },
+    {
+      "symbol": "SPORTFUN",
+      "binance_symbol": "SPORTFUNUSDT"
+    },
+    {
+      "symbol": "SPX",
+      "binance_symbol": "SPXUSDT"
+    },
+    {
+      "symbol": "SQD",
+      "binance_symbol": "SQDUSDT"
+    },
+    {
+      "symbol": "SSV",
+      "binance_symbol": "SSVUSDT"
+    },
+    {
+      "symbol": "STABLE",
+      "binance_symbol": "STABLEUSDT"
+    },
+    {
+      "symbol": "STAR",
+      "binance_symbol": "STARUSDT"
+    },
+    {
+      "symbol": "STBL",
+      "binance_symbol": "STBLUSDT"
+    },
+    {
+      "symbol": "STEEM",
+      "binance_symbol": "STEEMUSDT"
+    },
+    {
+      "symbol": "STG",
+      "binance_symbol": "STGUSDT"
+    },
+    {
+      "symbol": "STO",
+      "binance_symbol": "STOUSDT"
+    },
+    {
+      "symbol": "STORJ",
+      "binance_symbol": "STORJUSDT"
+    },
+    {
+      "symbol": "STRK",
+      "binance_symbol": "STRKUSDT"
+    },
+    {
+      "symbol": "STX",
+      "binance_symbol": "STXUSDT"
+    },
+    {
+      "symbol": "SUI",
+      "binance_symbol": "SUIUSDT"
+    },
+    {
+      "symbol": "SUN",
+      "binance_symbol": "SUNUSDT"
+    },
+    {
+      "symbol": "SUPER",
+      "binance_symbol": "SUPERUSDT"
+    },
+    {
+      "symbol": "SUSHI",
+      "binance_symbol": "SUSHIUSDT"
+    },
+    {
+      "symbol": "SWARMS",
+      "binance_symbol": "SWARMSUSDT"
+    },
+    {
+      "symbol": "SXT",
+      "binance_symbol": "SXTUSDT"
+    },
+    {
+      "symbol": "SYN",
+      "binance_symbol": "SYNUSDT"
+    },
+    {
+      "symbol": "SYRUP",
+      "binance_symbol": "SYRUPUSDT"
+    },
+    {
+      "symbol": "T",
+      "binance_symbol": "TUSDT"
+    },
+    {
+      "symbol": "TA",
+      "binance_symbol": "TAUSDT"
+    },
+    {
+      "symbol": "TAC",
+      "binance_symbol": "TACUSDT"
+    },
+    {
+      "symbol": "TAG",
+      "binance_symbol": "TAGUSDT"
+    },
+    {
+      "symbol": "TAIKO",
+      "binance_symbol": "TAIKOUSDT"
+    },
+    {
+      "symbol": "TAKE",
+      "binance_symbol": "TAKEUSDT"
+    },
+    {
+      "symbol": "TAO",
+      "binance_symbol": "TAOUSDT"
+    },
+    {
+      "symbol": "THE",
+      "binance_symbol": "THEUSDT"
+    },
+    {
+      "symbol": "THETA",
+      "binance_symbol": "THETAUSDT"
+    },
+    {
+      "symbol": "TIA",
+      "binance_symbol": "TIAUSDT"
+    },
+    {
+      "symbol": "TLM",
+      "binance_symbol": "TLMUSDT"
+    },
+    {
+      "symbol": "TNSR",
+      "binance_symbol": "TNSRUSDT"
+    },
+    {
+      "symbol": "TON",
+      "binance_symbol": "TONUSDT"
+    },
+    {
+      "symbol": "TOSHI",
+      "binance_symbol": "TOSHIUSDT"
+    },
+    {
+      "symbol": "TOWNS",
+      "binance_symbol": "TOWNSUSDT"
+    },
+    {
+      "symbol": "TRADOOR",
+      "binance_symbol": "TRADOORUSDT"
+    },
+    {
+      "symbol": "TRB",
+      "binance_symbol": "TRBUSDT"
+    },
+    {
+      "symbol": "TREE",
+      "binance_symbol": "TREEUSDT"
+    },
+    {
+      "symbol": "TRIA",
+      "binance_symbol": "TRIAUSDT"
+    },
+    {
+      "symbol": "TRUMP",
+      "binance_symbol": "TRUMPUSDT"
+    },
+    {
+      "symbol": "TRUST",
+      "binance_symbol": "TRUSTUSDT"
+    },
+    {
+      "symbol": "TRUTH",
+      "binance_symbol": "TRUTHUSDT"
+    },
+    {
+      "symbol": "TRX",
+      "binance_symbol": "TRXUSDT"
+    },
+    {
+      "symbol": "TST",
+      "binance_symbol": "TSTUSDT"
+    },
+    {
+      "symbol": "TURBO",
+      "binance_symbol": "TURBOUSDT"
+    },
+    {
+      "symbol": "TURTLE",
+      "binance_symbol": "TURTLEUSDT"
+    },
+    {
+      "symbol": "TUT",
+      "binance_symbol": "TUTUSDT"
+    },
+    {
+      "symbol": "TWT",
+      "binance_symbol": "TWTUSDT"
+    },
+    {
+      "symbol": "UAI",
+      "binance_symbol": "UAIUSDT"
+    },
+    {
+      "symbol": "UB",
+      "binance_symbol": "UBUSDT"
+    },
+    {
+      "symbol": "UMA",
+      "binance_symbol": "UMAUSDT"
+    },
+    {
+      "symbol": "UNI",
+      "binance_symbol": "UNIUSDT"
+    },
+    {
+      "symbol": "US",
+      "binance_symbol": "USUSDT"
+    },
+    {
+      "symbol": "USDC",
+      "binance_symbol": "USDCUSDT"
+    },
+    {
+      "symbol": "USELESS",
+      "binance_symbol": "USELESSUSDT"
+    },
+    {
+      "symbol": "USTC",
+      "binance_symbol": "USTCUSDT"
+    },
+    {
+      "symbol": "USUAL",
+      "binance_symbol": "USUALUSDT"
+    },
+    {
+      "symbol": "VANA",
+      "binance_symbol": "VANAUSDT"
+    },
+    {
+      "symbol": "VANRY",
+      "binance_symbol": "VANRYUSDT"
+    },
+    {
+      "symbol": "VELODROME",
+      "binance_symbol": "VELODROMEUSDT"
+    },
+    {
+      "symbol": "VELVET",
+      "binance_symbol": "VELVETUSDT"
+    },
+    {
+      "symbol": "VET",
+      "binance_symbol": "VETUSDT"
+    },
+    {
+      "symbol": "VIC",
+      "binance_symbol": "VICUSDT"
+    },
+    {
+      "symbol": "VIRTUAL",
+      "binance_symbol": "VIRTUALUSDT"
+    },
+    {
+      "symbol": "VTHO",
+      "binance_symbol": "VTHOUSDT"
+    },
+    {
+      "symbol": "VVV",
+      "binance_symbol": "VVVUSDT"
+    },
+    {
+      "symbol": "W",
+      "binance_symbol": "WUSDT"
+    },
+    {
+      "symbol": "WAL",
+      "binance_symbol": "WALUSDT"
+    },
+    {
+      "symbol": "WAXP",
+      "binance_symbol": "WAXPUSDT"
+    },
+    {
+      "symbol": "WCT",
+      "binance_symbol": "WCTUSDT"
+    },
+    {
+      "symbol": "WET",
+      "binance_symbol": "WETUSDT"
+    },
+    {
+      "symbol": "WIF",
+      "binance_symbol": "WIFUSDT"
+    },
+    {
+      "symbol": "WLD",
+      "binance_symbol": "WLDUSDT"
+    },
+    {
+      "symbol": "WLFI",
+      "binance_symbol": "WLFIUSDT"
+    },
+    {
+      "symbol": "WOO",
+      "binance_symbol": "WOOUSDT"
+    },
+    {
+      "symbol": "XAI",
+      "binance_symbol": "XAIUSDT"
+    },
+    {
+      "symbol": "XAN",
+      "binance_symbol": "XANUSDT"
+    },
+    {
+      "symbol": "XAUT",
+      "binance_symbol": "XAUTUSDT"
+    },
+    {
+      "symbol": "XLM",
+      "binance_symbol": "XLMUSDT"
+    },
+    {
+      "symbol": "XMR",
+      "binance_symbol": "XMRUSDT"
+    },
+    {
+      "symbol": "XNY",
+      "binance_symbol": "XNYUSDT"
+    },
+    {
+      "symbol": "XPIN",
+      "binance_symbol": "XPINUSDT"
+    },
+    {
+      "symbol": "XPL",
+      "binance_symbol": "XPLUSDT"
+    },
+    {
+      "symbol": "XRP",
+      "binance_symbol": "XRPUSDT"
+    },
+    {
+      "symbol": "XTZ",
+      "binance_symbol": "XTZUSDT"
+    },
+    {
+      "symbol": "XVG",
+      "binance_symbol": "XVGUSDT"
+    },
+    {
+      "symbol": "XVS",
+      "binance_symbol": "XVSUSDT"
+    },
+    {
+      "symbol": "YB",
+      "binance_symbol": "YBUSDT"
+    },
+    {
+      "symbol": "YFI",
+      "binance_symbol": "YFIUSDT"
+    },
+    {
+      "symbol": "YGG",
+      "binance_symbol": "YGGUSDT"
+    },
+    {
+      "symbol": "ZAMA",
+      "binance_symbol": "ZAMAUSDT"
+    },
+    {
+      "symbol": "ZBT",
+      "binance_symbol": "ZBTUSDT"
+    },
+    {
+      "symbol": "ZEC",
+      "binance_symbol": "ZECUSDT"
+    },
+    {
+      "symbol": "ZEN",
+      "binance_symbol": "ZENUSDT"
+    },
+    {
+      "symbol": "ZEREBRO",
+      "binance_symbol": "ZEREBROUSDT"
+    },
+    {
+      "symbol": "ZEST",
+      "binance_symbol": "ZESTUSDT"
+    },
+    {
+      "symbol": "ZETA",
+      "binance_symbol": "ZETAUSDT"
+    },
+    {
+      "symbol": "ZIL",
+      "binance_symbol": "ZILUSDT"
+    },
+    {
+      "symbol": "ZK",
+      "binance_symbol": "ZKUSDT"
+    },
+    {
+      "symbol": "ZKC",
+      "binance_symbol": "ZKCUSDT"
+    },
+    {
+      "symbol": "ZKP",
+      "binance_symbol": "ZKPUSDT"
+    },
+    {
+      "symbol": "ZORA",
+      "binance_symbol": "ZORAUSDT"
+    },
+    {
+      "symbol": "ZRO",
+      "binance_symbol": "ZROUSDT"
+    },
+    {
+      "symbol": "ZRX",
+      "binance_symbol": "ZRXUSDT"
+    },
+    {
+      "symbol": "\u5e01\u5b89\u4eba\u751f",
+      "binance_symbol": "\u5e01\u5b89\u4eba\u751fUSDT"
+    },
+    {
+      "symbol": "\u6211\u8e0f\u9a6c\u6765\u4e86",
+      "binance_symbol": "\u6211\u8e0f\u9a6c\u6765\u4e86USDT"
+    },
+    {
+      "symbol": "\u9f99\u867e",
+      "binance_symbol": "\u9f99\u867eUSDT"
+    }
   ]
 }

@@ -2,9 +2,30 @@
 
 Each row of the watchlist is assembled from independent public feeds. The table
 below is the catalog: what each source provides, which signal it feeds, whether it
-needs a key, and its known limits. **v0.1 uses only free, no-key sources.**
+needs a key, and its known limits. **All sources are free, no-key.**
 
-## Wired (free, no key)
+## Perp venues — the market-wide sweep (`detector.collect`)
+Crime coins are not mostly on Binance; the long tail lives on the smaller venues.
+Each venue exposes ONE bulk endpoint with funding + OI + volume for every perp, so
+the whole market (~3.8k markets) is one call per venue.
+
+| venue | bulk endpoint | perps | OI quality |
+|---|---|---|---|
+| Binance USD-M | `fapi/v1/premiumIndex` + `ticker/24hr` | ~740 | no bulk OI (funding+vol only here) |
+| Bybit | `v5/market/tickers?category=linear` | ~580 | exact USD (`openInterestValue`) |
+| Bitget | `api/v2/mix/market/tickers` | ~620 | exact (`holdingAmount`×mark) |
+| Gate | `api/v4/futures/usdt/tickers` | ~730 | exact (`total_size`×mult×mark) |
+| MEXC | `api/v1/contract/ticker` | ~890 | **omitted** — `holdVol` is contracts, not USD |
+| Hyperliquid | `info {metaAndAssetCtxs}` | ~230 | exact (`openInterest`×mark); funding is **hourly** |
+
+**Breadth ranking is funding-driven.** Market-wide, only funding + OI are
+available, and OI/volume floods (OI > 24h turnover is normal for alts), so OI is
+collected but NOT scored without a real float (MC). Deeply negative funding (shorts
+bleeding) is the squeeze tell and drives the ranking; everything stays `watchlist`
+until enriched. Funding intervals differ (Binance/most = 8h, some Bybit = 4h,
+Hyperliquid = 1h) — the scorer normalizes to a daily rate.
+
+## Enrichment (free, no key) — the curated deep scan (`detector.pipeline`)
 | source | endpoint | provides | feeds signal | notes |
 |---|---|---|---|---|
 | Binance USD-M | `fapi/v1/premiumIndex` | last funding rate, mark price | funding | per-interval rate |

@@ -7,8 +7,16 @@ __pycache__/
 # Generated site (rebuilt by CI from the JSON; not source)
 dist/
 
+# Generated current snapshot (4MB+, regenerated each scan). The committed base
+# summary is data/history/_scans.jsonl; full snapshots are in data/snapshots/.
+data/candidates/index.json
+
 # Local runtime logs (data/history/ IS the base — keep it tracked)
 data/logs/
+
+# Per-scan full snapshots — the local base, but 4MB+ each. Kept on disk, out of
+# git; data/history/_scans.jsonl is the lightweight committed summary.
+data/snapshots/
 
 # OS / editor
 .DS_Store

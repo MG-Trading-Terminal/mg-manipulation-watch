@@ -133,12 +133,16 @@ def _funding(s: Signals) -> Optional[tuple]:
 
 def _oi_dominance(s: Signals) -> Optional[tuple]:
     # Perp-driven price: huge OI relative to real float (MC proxy), or to volume.
+    # OI/MC is the real measure — ramp 0.10..0.60. The OI/24h-volume FALLBACK
+    # (when MC is unknown, e.g. a market-wide sweep) is weak: OI > 24h turnover is
+    # normal for most alts, so it must be desensitized (3x..20x) or it floods —
+    # in a no-MC sweep, negative FUNDING is the real squeeze discriminator.
     if s.open_interest_usd is not None and s.market_cap_usd and s.market_cap_usd > 0:
         r = s.open_interest_usd / s.market_cap_usd
         return _lin_ramp(r, 0.10, 0.60), r
-    if s.open_interest_usd is not None and s.volume_24h_usd and s.volume_24h_usd > 0:
-        r = s.open_interest_usd / s.volume_24h_usd
-        return _lin_ramp(r, 0.50, 3.00), r
+    # No OI/volume fallback: OI > 24h turnover is normal for alts, so without a
+    # real float (MC) it floods. OI is still collected into the base for later
+    # OI/MC scoring once MC enrichment is wired. In a no-MC sweep, funding rules.
     return None
 
 

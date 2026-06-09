@@ -50,6 +50,22 @@ def _f(x: Any) -> Optional[float]:
 # --------------------------------------------------------------------------- #
 # Binance USD-M futures                                                        #
 # --------------------------------------------------------------------------- #
+_FUNDING_INFO = None  # process-level cache: {symbol: interval_hours}
+
+
+def _funding_interval(binance_symbol: str) -> float:
+    global _FUNDING_INFO
+    if _FUNDING_INFO is None:
+        _FUNDING_INFO = {}
+        info = _get_json(f"{BINANCE_FAPI}/fapi/v1/fundingInfo")
+        if isinstance(info, list):
+            for it in info:
+                ih = _f(it.get("fundingIntervalHours"))
+                if it.get("symbol") and ih:
+                    _FUNDING_INFO[it["symbol"]] = ih
+    return _FUNDING_INFO.get(binance_symbol, 8.0)
+
+
 def binance_funding_oi(binance_symbol: str):
     """Returns (funding_rate, interval_hours, open_interest_usd, volume_24h_usd)."""
     funding_rate = interval_h = oi_usd = vol_usd = None
@@ -61,15 +77,9 @@ def binance_funding_oi(binance_symbol: str):
         mark = _f(prem.get("markPrice"))
 
     # Funding interval: default 8h; some symbols use 4h/1h (fundingInfo lists them).
-    interval_h = 8.0
-    info = _get_json(f"{BINANCE_FAPI}/fapi/v1/fundingInfo")
-    if isinstance(info, list):
-        for it in info:
-            if it.get("symbol") == binance_symbol:
-                ih = _f(it.get("fundingIntervalHours"))
-                if ih:
-                    interval_h = ih
-                break
+    # fundingInfo returns the whole list; fetch it once per process (matters when
+    # sweeping the full perp universe — otherwise it's one call per symbol).
+    interval_h = _funding_interval(binance_symbol)
 
     oi = _get_json(f"{BINANCE_FAPI}/fapi/v1/openInterest?symbol={binance_symbol}")
     if isinstance(oi, dict) and mark:

@@ -46,10 +46,25 @@ data/universe.json ─▶ detector/pipeline.py
 ## Commands
 ```bash
 python3 -m tests.test_calibration   # MUST pass before any scorer change
-python3 -m detector.pipeline        # run a live scan -> data/candidates/*.json
+python3 -m detector.collect         # PRIMARY: market-wide multi-venue sweep -> index.json + snapshot
+python3 -m detector.build_universe  # rebuild data/universe.json from Binance perps
+python3 -m detector.pipeline        # curated deep scan (Binance + cg/defillama enrichment)
 python3 web/build.py                # regenerate dist/ from the JSON
 python3 -m detector.scan SOL        # score one token from the universe, live
 ```
+
+## Two scanners (same engine)
+- **`detector.collect` (primary, broad):** one bulk call per venue
+  (Binance/Bybit/Bitget/Gate/MEXC/Hyperliquid) → ~3.8k perp markets, fast. Only
+  funding + OI available market-wide, and OI floods without a real float, so the
+  **breadth ranking is funding-driven** (deeply negative funding = the squeeze
+  tell). Everything stays `watchlist` — earning `suspected` needs enrichment.
+  Writes `data/candidates/index.json` + immutable `data/snapshots/<ts>.json` (base).
+- **`detector.pipeline` (curated, deep):** Binance + CoinGecko/DefiLlama enrichment
+  (MC/TVL, P/S) for the handful in `universe.json` that have `cg_id`/`defillama_slug`
+  → 2+ signals → can reach `suspected`. Per-symbol history in `data/history/`.
+- MEXC OI is omitted (its `holdVol` is in contracts, not USD — it inflated
+  BTC/stocks to max). OI is still collected for later OI/MC scoring.
 
 ## Local operation (no repo / no cloud — the current mode)
 The system runs fully locally and accumulates an append-only base under

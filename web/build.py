@@ -110,6 +110,7 @@ def _row(rank: int, r: dict) -> str:
     <tr class="row" data-status="{_esc(r.get('status',''))}" data-score="{score}">
       <td class="c-rank num">{rank:02d}</td>
       <td class="c-sym"><span class="sym mono">{_esc(r.get('symbol',''))}</span></td>
+      <td class="c-venue"><span class="venue">{_esc(r.get('venue',''))}</span></td>
       <td class="c-status">{_status_chip(r.get('status',''))}</td>
       <td class="c-score">
         <div class="score-wrap">
@@ -124,17 +125,25 @@ def _row(rank: int, r: dict) -> str:
     </tr>"""
 
 
+DISPLAY_LIMIT = 250  # render the top N rows; full set lives in data.json
+
+
 def render(dataset: dict) -> str:
     tokens = dataset.get("tokens", [])
-    rows = "\n".join(_row(i + 1, r) for i, r in enumerate(tokens))
+    shown = tokens[:DISPLAY_LIMIT]
+    rows = "\n".join(_row(i + 1, r) for i, r in enumerate(shown))
     gen = dataset.get("generated_at", "")
     count = dataset.get("count", len(tokens))
     suspected = dataset.get("suspected", 0)
-    data_json = _esc(json.dumps(dataset))
+    venues = dataset.get("venues", {})
+    venue_line = " · ".join(f"{k} {v}" for k, v in sorted(venues.items())) or "—"
+    shown_note = (f"top {len(shown)} of {count:,} markets — full set in "
+                  f"<a class='json-link' href='data.json'>data.json</a>")
 
     return TEMPLATE.format(
-        rows=rows, gen=_esc(gen), count=count, suspected=suspected,
-        watch=count - suspected, data_json=data_json,
+        rows=rows, gen=_esc(gen), count=f"{count:,}", suspected=suspected,
+        watch=f"{count - suspected:,}", venue_line=_esc(venue_line),
+        shown_note=shown_note,
     )
 
 
@@ -238,6 +247,9 @@ TEMPLATE = """<!DOCTYPE html>
   .row:hover {{ background:var(--bg-1); }}
   .c-rank {{ color:var(--fg-4); font-size:12px; width:38px; }}
   .sym {{ font-size:15px; font-weight:600; }}
+  .c-venue {{ width:96px; }}
+  .venue {{ font-family:var(--font-mono); font-size:11px; color:var(--fg-3);
+    text-transform:uppercase; letter-spacing:.04em; }}
   .c-score {{ width:140px; }}
   .score-wrap {{ display:flex; align-items:center; gap:10px; }}
   .score {{ font-size:19px; width:30px; }}
@@ -316,22 +328,23 @@ TEMPLATE = """<!DOCTYPE html>
   </div>
 
   <div class="stats">
-    <div class="stat"><div class="k">Scanned</div><div class="v">{count}</div></div>
+    <div class="stat"><div class="k">Markets</div><div class="v">{count}</div></div>
     <div class="stat"><div class="k">Suspected</div><div class="v warn">{suspected}</div></div>
     <div class="stat"><div class="k">Watchlist</div><div class="v">{watch}</div></div>
     <div class="stat"><div class="k">Updated (UTC)</div><div class="v" style="font-size:14px">{gen}</div></div>
   </div>
+  <div class="eyebrow" style="margin:10px 2px 0">venues: {venue_line}</div>
 
   <div class="controls">
     <button class="filt on" data-f="all">All</button>
     <button class="filt" data-f="suspected">Suspected</button>
     <button class="filt" data-f="watchlist">Watchlist</button>
-    <span class="right"><a class="json-link" href="data.json">↓ data.json</a></span>
+    <span class="right">{shown_note}</span>
   </div>
 
   <table>
     <thead><tr>
-      <th>#</th><th>Token</th><th>Status</th><th>Score</th><th>Conf</th>
+      <th>#</th><th>Token</th><th>Venue</th><th>Status</th><th>Score</th><th>Conf</th>
       <th>Signals</th><th>OAK</th><th>Evidence</th>
     </tr></thead>
     <tbody id="rows">
@@ -340,18 +353,17 @@ TEMPLATE = """<!DOCTYPE html>
   </table>
 
   <footer>
-    Sources: Binance USD-M (funding · OI), CoinGecko (market cap), DefiLlama (TVL · fees).
-    Supply / wash signals are partial in v0.1. Taxonomy:
+    Sources: 6 perp venues — Binance · Bybit · Bitget · Gate · MEXC · Hyperliquid
+    (funding · OI · volume). Market-wide ranking is funding-driven; OI/MC, P/S,
+    supply &amp; wash enrich curated tokens (v0.2). Taxonomy:
     <a href="https://onchainattack.com" target="_blank" rel="noopener">OnChain Attack Knowledge (OAK)</a>.<br/>
-    Dataset: <a class="json-link" href="data.json">data.json</a> · schema <span class="mono">mgterminal.crime-coins/v0.1</span>.
+    Dataset: <a class="json-link" href="data.json">data.json</a> · schema <span class="mono">mgterminal.crime-coins/v0.2-multivenue</span>.
     Generated automatically — do not hand-edit dist/.<br/>
     © MeatGrinder · MG Terminal. Manipulation-risk heuristic, not financial advice.
   </footer>
 </div>
 
 <script>
-  // Embedded dataset for programmatic use in-page.
-  window.MG_DATA = {data_json};
   // Light client-side filter (page is fully server-rendered without it).
   document.querySelectorAll('.filt').forEach(function(b) {{
     b.addEventListener('click', function() {{
