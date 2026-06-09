@@ -4,6 +4,9 @@ __pycache__/
 .venv/
 .local-venv/
 
+# Secrets
+.env
+
 # Node / Vite
 node_modules/
 

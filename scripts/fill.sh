@@ -10,6 +10,7 @@
 set -uo pipefail
 export PATH="/usr/bin:/usr/local/bin:/opt/homebrew/bin:$PATH"
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd "$DIR" || exit 1
+[ -f "$DIR/.env" ] && { set -a; . "$DIR/.env"; set +a; }   # load key + tunables
 
 : "${PROFILE_BUDGET:=400}"; export PROFILE_BUDGET
 : "${PROFILE_PACE:=2.5}";   export PROFILE_PACE

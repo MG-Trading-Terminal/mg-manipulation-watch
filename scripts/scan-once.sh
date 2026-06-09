@@ -9,6 +9,7 @@ export PATH="/usr/bin:/usr/local/bin:/opt/homebrew/bin:$PATH"
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$DIR" || exit 1
+[ -f "$DIR/.env" ] && { set -a; . "$DIR/.env"; set +a; }   # CoinGecko key + tunables
 mkdir -p data/logs
 LOG="data/logs/scan.log"
 ts() { date -u +%FT%TZ; }
