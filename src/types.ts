@@ -24,6 +24,33 @@ export interface Evidence {
   url: string;
 }
 
+export interface TokenMarket {
+  price?: number | null;
+  ath?: number | null;
+  ath_pct?: number | null;     // % from all-time high (the dump; negative)
+  ath_date?: string | null;
+  chg24?: number | null;
+  chg7d?: number | null;
+  chg30d?: number | null;
+  vol_24h?: number | null;
+  market_cap?: number | null;
+}
+
+export interface TokenDumps {
+  max_drawdown?: number;
+  ath_date?: string;
+  biggest_drop?: number;
+  biggest_drop_date?: string;
+  n_major?: number;
+  run_up?: number;
+  pump_dump?: boolean;
+  recovered?: boolean;
+  history_days?: number;
+  spark?: number[];
+  peak_at?: number | null;
+  dump_at?: number | null;
+}
+
 export interface TokenProfile {
   name?: string;
   description?: string;
@@ -47,6 +74,9 @@ export interface Token {
   context: TokenContext;
   evidence: Evidence[];
   profile?: TokenProfile;
+  market?: TokenMarket;
+  dumps?: TokenDumps;
+  liveness?: string;
   human_reviewed?: boolean;
   reviewer?: string;
   reviewed_at?: string;

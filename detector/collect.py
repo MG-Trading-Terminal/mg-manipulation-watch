@@ -27,7 +27,7 @@ from typing import List
 
 from .crime_score import score, Signals
 from .venues import all_tickers, ADAPTERS
-from . import enrich, goplus, dexscreener
+from . import enrich, goplus, dexscreener, dumps
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT_DIR = os.path.join(ROOT, "data", "candidates")
@@ -36,7 +36,42 @@ HIST = os.path.join(ROOT, "data", "history", "_scans.jsonl")
 GP_CACHE = os.path.join(ROOT, "data", "enrich", "goplus.json")
 DX_CACHE = os.path.join(ROOT, "data", "enrich", "dexscreener.json")
 CG_DETAIL_CACHE = os.path.join(ROOT, "data", "enrich", "cg_detail.json")
+DUMPS_CACHE = os.path.join(ROOT, "data", "enrich", "dumps.json")
 CONFIRMED_DIR = os.path.join(ROOT, "data", "confirmed")
+
+
+def _token_dumps(by_token: dict, maps: dict, max_fetch: int = 250, pace: float = 0.6) -> int:
+    """Attach systematic historical dump analysis (full chart) per token. Cached +
+    budgeted; transient/429 not cached (retried next run)."""
+    cache = _load_json(DUMPS_CACHE)
+    sym_cgid, want = {}, []
+    for sym in by_token:
+        cid = enrich.cg_id_for(sym, maps)
+        if not cid:
+            continue
+        sym_cgid[sym] = cid
+        if cid not in cache:
+            want.append(cid)
+    attempts, got = 0, False
+    for cid in want:
+        if attempts >= max_fetch:
+            break
+        attempts += 1
+        r = dumps.dump_history(cid)
+        time.sleep(pace)
+        if r is not None:
+            cache[cid] = r
+            got = True
+    if got:
+        _save_json(DUMPS_CACHE, cache)
+    n = 0
+    for sym, t in by_token.items():
+        cid = sym_cgid.get(sym)
+        r = cache.get(cid) if cid else None
+        if r and not r.get("_no_data"):
+            t["dumps"] = r
+            n += 1
+    return n
 
 
 def _token_profiles(by_token: dict, maps: dict, max_fetch: int = 200, pace: float = 2.5) -> int:
@@ -251,6 +286,10 @@ def run(venues=None) -> dict:
 
     now_ms = datetime.now(timezone.utc).timestamp() * 1000.0
     maps = enrich.load()  # bulk MC/TVL/fees maps (cached) -> full signal set
+    try:
+        enrich.refresh_markets(maps)  # fresh price / ATH-drawdown / 24h-7d-30d / volume (cheap)
+    except Exception:
+        pass
     tickers = all_tickers(venues)
 
     # Contract + market-structure pass: resolve EVM contracts, fetch GoPlus
@@ -377,6 +416,60 @@ def run(venues=None) -> dict:
         max_fetch=int(os.environ.get("PROFILE_BUDGET", "200")),
         pace=float(os.environ.get("PROFILE_PACE", str(default_pace))),
     )
+    # Systematic historical dump analysis (full chart per token).
+    dumped = _token_dumps(
+        by_token, maps,
+        max_fetch=int(os.environ.get("DUMP_BUDGET", "250")),
+        pace=float(os.environ.get("PROFILE_PACE", str(default_pace))),
+    )
+
+    # Attach fresh market metrics (price, dump-from-ATH, changes, volume) + liveness,
+    # and turn a REALIZED dump into a sign — already-happened scams (e.g. -98% from
+    # ATH) must not sit at score 0. A collapse alone can be a bear market, so it only
+    # forces `suspected` when paired with a structural sign (the realized-rug shape).
+    STRUCTURAL = {"low-float", "thin-liquidity", "holder-concentration",
+                  "mc/tvl-disconnect", "mintable", "owner-control", "honeypot"}
+    for sym, t in by_token.items():
+        m = enrich.market_for(sym, maps)
+        if not m:
+            continue
+        t["market"] = m
+        vol = m.get("vol_24h")
+        ath_pct = m.get("ath_pct")
+        if vol is not None and vol < 10_000:
+            t["liveness"] = "dead"
+        elif ath_pct is not None and ath_pct <= -90:
+            t["liveness"] = "collapsed"
+        elif vol is not None and vol < 250_000:
+            t["liveness"] = "low"
+        else:
+            t["liveness"] = "active"
+
+        # Historical dump record (preferred) with snapshot ATH-drawdown as fallback.
+        dm = t.get("dumps") or {}
+        drawdown = dm.get("max_drawdown")
+        if drawdown is None and ath_pct is not None:
+            drawdown = ath_pct / 100.0
+        if drawdown is not None and drawdown <= -0.90 and "collapsed" not in t["flags"]:
+            t["flags"].append("collapsed")           # ever fell >=90% peak->trough
+            if "OAK-T3.003" not in t["oak_techniques"]:
+                t["oak_techniques"].append("OAK-T3.003")
+        if dm.get("pump_dump") and "pump-dump" not in t["flags"]:
+            t["flags"].append("pump-dump")           # ran >=3x then crashed >=80%, no recovery
+            if "OAK-T3.003" not in t["oak_techniques"]:
+                t["oak_techniques"].append("OAK-T3.003")
+        if t["liveness"] == "dead" and "dead" not in t["flags"]:
+            t["flags"].append("dead")
+
+        # Realized-rug shape -> suspected. The classic pump→dump shape needs only one
+        # structural sign; a plain deep collapse needs >=2 (or dead) so a bear-market
+        # coin isn't condemned. Humans (cleared/confirmed) are never overridden.
+        if not t.get("human_reviewed"):
+            nstruct = len(STRUCTURAL & set(t["flags"]))
+            if "pump-dump" in t["flags"] and nstruct >= 1:
+                t["status"] = "suspected"
+            elif "collapsed" in t["flags"] and (nstruct >= 2 or "dead" in t["flags"]):
+                t["status"] = "suspected"
 
     token_list = sorted(
         by_token.values(),

@@ -15,6 +15,7 @@ export const FLAG_STYLE: Record<string, string> = {
   "high-tax": "fl-red", mintable: "fl-amber", "owner-control": "fl-amber",
   "closed-source": "fl-info", "holder-concentration": "fl-amber",
   "thin-liquidity": "fl-amber", "fresh-launch": "fl-info",
+  collapsed: "fl-red", dead: "fl-red", "pump-dump": "fl-red",
 };
 
 export const FLAG_LABEL: Record<string, string> = {
@@ -23,12 +24,13 @@ export const FLAG_LABEL: Record<string, string> = {
   "high-tax": "HIGH-TAX", mintable: "MINTABLE", "owner-control": "OWNER-CTRL",
   "closed-source": "CLOSED-SRC", "holder-concentration": "HOLDERS",
   "thin-liquidity": "THIN-LIQ", "fresh-launch": "FRESH",
+  collapsed: "COLLAPSED", dead: "DEAD", "pump-dump": "PUMP-DUMP",
 };
 
 // Visualization groups: contract / market / fundamental.
 export const FLAG_GROUPS: ReadonlyArray<readonly [string, string, readonly string[]]> = [
   ["contract", "fl-red", ["honeypot", "high-tax", "mintable", "owner-control", "holder-concentration", "closed-source"]],
-  ["market", "fl-amber", ["squeeze", "oi-dominance", "thin-liquidity", "fresh-launch"]],
+  ["market", "fl-amber", ["pump-dump", "squeeze", "oi-dominance", "thin-liquidity", "fresh-launch", "collapsed", "dead"]],
   ["fundamental", "fl-info", ["mc/tvl-disconnect", "ps-disconnect", "low-float"]],
 ];
 
@@ -61,6 +63,9 @@ export const FLAG_DESCRIPTION: Record<string, string> = {
   "mc/tvl-disconnect": "Market cap dwarfs the value locked in the protocol (shown as context only).",
   "ps-disconnect": "Market cap dwarfs the revenue it earns (shown as context only).",
   "low-float": "Most supply isn't circulating yet — unlocks can flood the market.",
+  collapsed: "Ever fell ≥90% peak-to-trough — a realized dump.",
+  dead: "Effectively no trading volume — abandoned.",
+  "pump-dump": "Ran up 3x+ then crashed 80%+ and never recovered — the classic rug shape.",
 };
 
 export function fmtUsd(n?: number | null): string {
@@ -74,6 +79,28 @@ export function fmtUsd(n?: number | null): string {
 
 export const pct = (x?: number | null, dp = 1): string =>
   x == null ? "—" : `${(x * 100).toFixed(dp)}%`;
+
+export const pctSigned = (x?: number | null): string =>
+  x == null ? "—" : `${x >= 0 ? "+" : ""}${x.toFixed(1)}%`;
+
+export const changeClass = (x?: number | null): string =>
+  x == null ? "" : x > 0 ? "up" : x < 0 ? "down-txt" : "";
+
+export function priceFmt(p?: number | null): string {
+  if (p == null) return "—";
+  if (p >= 1) return `$${p.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+  if (p >= 0.01) return `$${p.toFixed(4)}`;
+  return `$${p.toPrecision(2)}`;
+}
+
+export const LIVENESS: Record<string, { label: string; cls: string }> = {
+  active: { label: "ACTIVE", cls: "fl-info" },
+  low: { label: "LOW ACTIVITY", cls: "fl-amber" },
+  collapsed: { label: "COLLAPSED", cls: "fl-red" },
+  dead: { label: "DEAD · NO VOLUME", cls: "fl-red" },
+};
+export const dateShort = (s?: string | null): string =>
+  s ? s.slice(0, 10) : "—";
 
 const EXPLORERS: Record<string, string> = {
   "1": "https://etherscan.io/token/", "56": "https://bscscan.com/token/",

@@ -8,7 +8,7 @@ import { Pager } from "../components/Pager";
 const GLOSSARY_ORDER = [
   "honeypot", "high-tax", "mintable", "owner-control", "holder-concentration",
   "closed-source", "squeeze", "oi-dominance", "thin-liquidity", "fresh-launch",
-  "mc/tvl-disconnect", "ps-disconnect", "low-float",
+  "pump-dump", "collapsed", "dead", "mc/tvl-disconnect", "ps-disconnect", "low-float",
 ];
 
 const FILTERS = [

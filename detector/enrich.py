@@ -69,7 +69,8 @@ def _coingecko_markets(pages: int) -> Dict[str, dict]:
     out = {}
     for page in range(1, pages + 1):
         url = ("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd"
-               f"&order=market_cap_desc&per_page=250&page={page}")
+               "&order=market_cap_desc&per_page=250&price_change_percentage=24h,7d,30d"
+               f"&page={page}")
         # Retry a rate-limited page rather than breaking the whole pagination
         # (a single 429 must not truncate the universe to a few hundred coins).
         data = None
@@ -88,11 +89,51 @@ def _coingecko_markets(pages: int) -> Dict[str, dict]:
             if not s or mc is None:
                 continue
             if s not in out or mc > out[s]["mc"]:
-                out[s] = {"mc": mc, "vol": _f(c.get("total_volume")),
-                          "fdv": _f(c.get("fully_diluted_valuation")),
-                          "id": c.get("id")}
+                out[s] = {
+                    "mc": mc,
+                    "vol": _f(c.get("total_volume")),
+                    "fdv": _f(c.get("fully_diluted_valuation")),
+                    "id": c.get("id"),
+                    # live market metrics (refreshed each scan via refresh_markets)
+                    "price": _f(c.get("current_price")),
+                    "ath": _f(c.get("ath")),
+                    "ath_pct": _f(c.get("ath_change_percentage")),     # % from all-time high (the dump)
+                    "ath_date": c.get("ath_date"),
+                    "chg24": _f(c.get("price_change_percentage_24h_in_currency")),
+                    "chg7d": _f(c.get("price_change_percentage_7d_in_currency")),
+                    "chg30d": _f(c.get("price_change_percentage_30d_in_currency")),
+                }
         time.sleep(2.5)  # free-tier pacing (python sleep, not the shell)
     return out
+
+
+def refresh_markets(maps: dict, pages: int = 16) -> int:
+    """Re-fetch ONLY the bulk markets pages (cheap, ~16 calls) and merge fresh
+    price / ATH-drawdown / 24h-7d-30d change / volume into the cached cg map —
+    so the risk profile's market data updates every scan. Static fields
+    (id, platforms, detail) are left untouched. Saves maps.json. Returns # updated."""
+    fresh = _coingecko_markets(pages)
+    cg = maps.setdefault("cg", {})
+    n = 0
+    for sym, m in fresh.items():
+        e = cg.setdefault(sym, {})
+        e.update(m)            # mc/vol/fdv/price/ath/ath_pct/chg* refresh; id preserved/set
+        n += 1
+    if n:
+        with open(CACHE, "w", encoding="utf-8") as f:
+            json.dump(maps, f)
+    return n
+
+
+# Live market metrics for a perp base symbol (price, dump, changes, volume).
+def market_for(base_symbol: str, maps: dict):
+    cg = maps.get("cg", {}).get(norm_symbol(base_symbol))
+    if not cg:
+        return None
+    m = {k: cg.get(k) for k in ("price", "ath", "ath_pct", "ath_date", "chg24", "chg7d", "chg30d")}
+    m["vol_24h"] = cg.get("vol")
+    m["market_cap"] = cg.get("mc")
+    return m if any(v is not None for v in m.values()) else None
 
 
 def _coingecko_platforms() -> Dict[str, dict]:

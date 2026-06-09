@@ -275,6 +275,9 @@ a.sym:hover { color:var(--mg-bright); }
 .dl-row { display:flex; justify-content:space-between; gap:12px; padding:13px 16px; background:var(--bg-1); }
 .dl-k { font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.1em; color:var(--fg-4); }
 .dl-v { color:var(--fg-1); font-size:14px; } .dl-v.warn { color:var(--down); font-weight:500; }
+.up { color:var(--mg); } .down-txt { color:var(--down); }
+.dumpchart { width:100%; height:auto; display:block; border:1px solid var(--line-1);
+  border-radius:10px; background:var(--bg-1); }
 .oak-list { display:flex; flex-direction:column; gap:8px; }
 .oak-line { display:flex; align-items:center; gap:12px; }
 .oak-desc { font-size:13px; color:var(--fg-2); }

@@ -1,10 +1,12 @@
 import {
-  FLAG_DESCRIPTION, FLAG_LABEL, FLAG_STYLE, OAK_LABELS, dexscreenerUrl,
-  explorerUrl, fmtUsd, goplusUrl, num, oakUrl, pct, platformLink,
+  FLAG_DESCRIPTION, FLAG_LABEL, FLAG_STYLE, OAK_LABELS, changeClass, dateShort,
+  dexscreenerUrl, explorerUrl, fmtUsd, goplusUrl, num, oakUrl, pct, platformLink,
+  pctSigned, priceFmt,
 } from "../lib";
 import { tokenBySymbol } from "../types";
 import type { Evidence } from "../types";
 import { RiskHero } from "../components/RiskHero";
+import { DumpChart } from "../components/DumpChart";
 
 function Field({ k, v, warn }: { k: string; v: React.ReactNode; warn?: boolean }) {
   return (
@@ -54,7 +56,7 @@ export function TokenDetailView({ symbol }: { symbol: string }) {
 
   const groups: Array<[string, string, string[]]> = [
     ["contract", "fl-red", ["honeypot", "high-tax", "mintable", "owner-control", "holder-concentration", "closed-source"]],
-    ["market", "fl-amber", ["squeeze", "oi-dominance", "thin-liquidity", "fresh-launch"]],
+    ["market", "fl-amber", ["pump-dump", "squeeze", "oi-dominance", "thin-liquidity", "fresh-launch", "collapsed", "dead"]],
     ["fundamental", "fl-info", ["mc/tvl-disconnect", "ps-disconnect", "low-float"]],
   ];
 
@@ -69,6 +71,38 @@ export function TokenDetailView({ symbol }: { symbol: string }) {
           <b>Human-reviewed ({t.status}).</b> {t.summary}
           {t.reviewer ? ` — ${t.reviewer}, ${t.reviewed_at}` : ""}
         </div>
+      )}
+
+      {t.market && (
+        <section className="d-sec">
+          <h2 className="d-h2">Price &amp; dumps</h2>
+          <div className="datalist">
+            <Field k="Price" v={priceFmt(t.market.price)} />
+            <Field k="From ATH" v={pctSigned(t.market.ath_pct)} warn={t.market.ath_pct != null && t.market.ath_pct <= -80} />
+            <Field k="ATH" v={`${priceFmt(t.market.ath)} · ${dateShort(t.market.ath_date)}`} />
+            <Field k="24h" v={<span className={changeClass(t.market.chg24)}>{pctSigned(t.market.chg24)}</span>} />
+            <Field k="7d" v={<span className={changeClass(t.market.chg7d)}>{pctSigned(t.market.chg7d)}</span>} />
+            <Field k="30d" v={<span className={changeClass(t.market.chg30d)}>{pctSigned(t.market.chg30d)}</span>} />
+            <Field k="24h volume" v={fmtUsd(t.market.vol_24h)} warn={t.market.vol_24h != null && t.market.vol_24h < 10_000} />
+          </div>
+        </section>
+      )}
+
+      {t.dumps && (
+        <section className="d-sec">
+          <h2 className="d-h2">Dump history <span className="hcount">{t.dumps.history_days}d</span></h2>
+          {t.dumps.spark && t.dumps.spark.length > 3 && <DumpChart dumps={t.dumps} />}
+          <div className="datalist" style={{ marginTop: 12 }}>
+            <Field k="Max drawdown" v={pctSigned(t.dumps.max_drawdown != null ? t.dumps.max_drawdown * 100 : null)}
+              warn={t.dumps.max_drawdown != null && t.dumps.max_drawdown <= -0.8} />
+            <Field k="Biggest 30d crash" v={`${pctSigned(t.dumps.biggest_drop != null ? t.dumps.biggest_drop * 100 : null)} · ${dateShort(t.dumps.biggest_drop_date)}`}
+              warn={t.dumps.biggest_drop != null && t.dumps.biggest_drop <= -0.5} />
+            <Field k="Run-up to ATH" v={t.dumps.run_up != null ? `${t.dumps.run_up}×` : "—"} />
+            <Field k="Major (≥50%) crashes" v={t.dumps.n_major ?? "—"} warn={(t.dumps.n_major ?? 0) >= 2} />
+            <Field k="ATH" v={dateShort(t.dumps.ath_date)} />
+            <Field k="Recovered?" v={t.dumps.recovered ? "yes" : "no"} warn={t.dumps.recovered === false} />
+          </div>
+        </section>
       )}
 
       {(p.description || (p.categories && p.categories.length) || p.rank) && (

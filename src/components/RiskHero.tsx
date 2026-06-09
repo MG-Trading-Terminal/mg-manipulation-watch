@@ -1,4 +1,4 @@
-import { TONE_COLOR, riskLevel } from "../lib";
+import { LIVENESS, TONE_COLOR, riskLevel } from "../lib";
 import type { Token } from "../types";
 import { ScoreRing } from "./ScoreRing";
 import { StatusChip } from "./chips";
@@ -16,6 +16,9 @@ export function RiskHero({ token }: { token: Token }) {
           <span className="rh-sym mono">{token.symbol}</span>
           {token.profile?.name && <span className="rh-name">{token.profile.name}</span>}
           <StatusChip status={token.status} />
+          {token.liveness && LIVENESS[token.liveness] && (
+            <span className={`fl ${LIVENESS[token.liveness].cls}`}>{LIVENESS[token.liveness].label}</span>
+          )}
         </div>
         <div className="rh-label" style={{ color }}>{rl.label}</div>
         <div className="rh-blurb">{rl.blurb}</div>
