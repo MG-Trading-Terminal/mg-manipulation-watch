@@ -32,6 +32,16 @@ _TIMEOUT = 20
 # Binance/Bybit contract-size prefixes — strip so "1000PEPE" matches "PEPE".
 _PREFIX = re.compile(r"^(1000000|100000|10000|1000|1M|1MB|1B|1K|K)(?=[A-Z])")
 
+# Optional free CoinGecko Demo API key (env) — the clean way past the rate limit.
+CG_KEY = os.environ.get("COINGECKO_API_KEY")
+
+
+def _cg(url: str) -> str:
+    """Append the CoinGecko demo key to a CoinGecko URL if one is configured."""
+    if CG_KEY:
+        return url + ("&" if "?" in url else "?") + "x_cg_demo_api_key=" + CG_KEY
+    return url
+
 
 def _get(url):
     try:
@@ -64,7 +74,7 @@ def _coingecko_markets(pages: int) -> Dict[str, dict]:
         # (a single 429 must not truncate the universe to a few hundred coins).
         data = None
         for attempt in range(3):
-            data = _get(url)
+            data = _get(_cg(url))
             if isinstance(data, list):
                 break
             time.sleep(5)
@@ -95,7 +105,7 @@ def _coingecko_platforms() -> Dict[str, dict]:
     out = {}
     for attempt in range(4):
         try:
-            req = urllib.request.Request(url, headers=_UA)
+            req = urllib.request.Request(_cg(url), headers=_UA)
             with urllib.request.urlopen(req, timeout=90) as r:
                 data = json.loads(r.read().decode("utf-8"))
             if isinstance(data, list):
@@ -179,7 +189,7 @@ def coingecko_detail(cg_id: str) -> dict:
            "&community_data=false&developer_data=false&sparkline=false")
     d = None
     for attempt in range(3):
-        d = _get(url)
+        d = _get(_cg(url))
         if isinstance(d, dict):
             break
         time.sleep(4 * (attempt + 1))  # backoff on transient / rate-limit

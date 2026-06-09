@@ -89,6 +89,15 @@ facts (honeypot/mint/tax/holders). MEXC OI is omitted (holdVol = contracts, not 
 - `detector.pipeline` — curated deep scan where `mc/tvl`/`ps` ARE auto-scored
   (hand-verified `defillama_slug` only). Per-symbol history in `data/history/`.
 
+## Filling the initial base (rate limits)
+All enrichment is cached (`data/enrich/*.json`); each run only fetches what's
+missing, so coverage fills incrementally. To pull a lot at once:
+- `bash scripts/fill.sh` — one high-budget pass (env `PROFILE_BUDGET`, `PROFILE_PACE`).
+  CoinGecko limits per IP, so **rotate VPN location between runs** — caches keep what's done.
+- `COINGECKO_API_KEY=CG-xxxx` (free Demo key) is the clean fix → set `PROFILE_PACE=0.4`.
+- Transient/429s are NOT cached (retried next run); genuine 404s cache as `_no_data`.
+- Run ONE fill at a time (they share caches).
+
 ## Local operation (no repo / no cloud — the current mode)
 The system runs fully locally and accumulates an append-only base under
 `data/history/<SYMBOL>.jsonl` (one line per token per scan). Three ways to run:

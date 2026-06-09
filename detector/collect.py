@@ -39,7 +39,7 @@ CG_DETAIL_CACHE = os.path.join(ROOT, "data", "enrich", "cg_detail.json")
 CONFIRMED_DIR = os.path.join(ROOT, "data", "confirmed")
 
 
-def _token_profiles(by_token: dict, maps: dict, max_fetch: int = 200) -> int:
+def _token_profiles(by_token: dict, maps: dict, max_fetch: int = 200, pace: float = 2.5) -> int:
     """Attach a rich CoinGecko PROFILE to each token (what it is, who's behind it,
     socials, categories, all-chain contracts, logo). Cached + budgeted per run."""
     cache = _load_json(CG_DETAIL_CACHE)
@@ -58,7 +58,7 @@ def _token_profiles(by_token: dict, maps: dict, max_fetch: int = 200) -> int:
             break
         attempts += 1
         r = enrich.coingecko_detail(cid)
-        time.sleep(2.5)  # CoinGecko free-tier pacing (stay under ~30/min)
+        time.sleep(pace)  # CoinGecko pacing (env PROFILE_PACE; lower with a demo key)
         if r is not None:               # None = transient; skip caching, retry next run
             cache[cid] = r
             got = True
@@ -369,7 +369,13 @@ def run(venues=None) -> dict:
                 t["evidence"].append(e)
 
     # Rich project profiles (description, socials, categories, contracts, logo).
-    profiled = _token_profiles(by_token, maps)
+    # Budget/pace are env-tunable for a fast init (VPN rotation / demo key) vs the
+    # small steady 4h increment.
+    profiled = _token_profiles(
+        by_token, maps,
+        max_fetch=int(os.environ.get("PROFILE_BUDGET", "200")),
+        pace=float(os.environ.get("PROFILE_PACE", "2.5")),
+    )
 
     token_list = sorted(
         by_token.values(),
