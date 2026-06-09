@@ -67,6 +67,13 @@ jobs:
       - name: Scan all venues -> JSON
         env:
           COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
+          # Cover the whole universe per run. The enrichment cache (restored above)
+          # makes steady-state runs cheap; these ceilings only bite on a cold cache
+          # (first run / cache eviction), where they fill coverage in one pass
+          # instead of dribbling ~200 tokens across many 4h runs. Demo key paces at
+          # ~100 req/min, so a full cold fill is ~15-20 min — well within CI limits.
+          PROFILE_BUDGET: "1000"
+          DUMP_BUDGET: "1000"
         run: python3 -m detector.collect
 
       - name: Build site (Vite/React/TS — bakes JSON into generated.ts)
