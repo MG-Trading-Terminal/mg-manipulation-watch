@@ -107,11 +107,12 @@ def _coingecko_markets(pages: int) -> Dict[str, dict]:
     return out
 
 
-def refresh_markets(maps: dict, pages: int = 16) -> int:
-    """Re-fetch ONLY the bulk markets pages (cheap, ~16 calls) and merge fresh
-    price / ATH-drawdown / 24h-7d-30d change / volume into the cached cg map —
-    so the risk profile's market data updates every scan. Static fields
-    (id, platforms, detail) are left untouched. Saves maps.json. Returns # updated."""
+def refresh_markets(maps: dict, pages: int = 0) -> int:
+    """Re-fetch the bulk markets pages and merge fresh price / ATH-drawdown /
+    24h-7d-30d change / volume into the cached cg map (so the risk profile updates
+    every scan) AND extend the symbol->id coverage deeper into the long tail.
+    Static fields (platforms, detail) are left untouched. Depth = env CG_PAGES."""
+    pages = pages or int(os.environ.get("CG_PAGES", "40"))
     fresh = _coingecko_markets(pages)
     cg = maps.setdefault("cg", {})
     n = 0
@@ -195,7 +196,8 @@ def _defillama() -> Dict[str, dict]:
     return out
 
 
-def build(pages: int = 16) -> dict:
+def build(pages: int = 0) -> dict:
+    pages = pages or int(os.environ.get("CG_PAGES", "40"))  # depth into the long tail
     platforms = _coingecko_platforms()   # big call first (before pagination throttles)
     cg = _coingecko_markets(pages)
     dl = _defillama()
