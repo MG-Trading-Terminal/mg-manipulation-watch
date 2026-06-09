@@ -1,4 +1,4 @@
-import { FLAG_LABEL, FLAG_STYLE, OAK_LABELS, OAK_URL, STATUS_CHIP, flagTitle } from "../lib";
+import { FLAG_LABEL, FLAG_STYLE, OAK_LABELS, STATUS_CHIP, flagTitle, oakUrl } from "../lib";
 import type { Evidence, TokenContext } from "../types";
 
 export function StatusChip({ status }: { status: string }) {
@@ -25,7 +25,7 @@ export function OakChips({ ids }: { ids: string[] }) {
     <>
       {ids.map((id) => (
         <a key={id} className="oak" target="_blank" rel="noopener"
-          href={`${OAK_URL}${id.replace("OAK-", "").toLowerCase()}`}
+          href={oakUrl(id)}
           title={OAK_LABELS[id] ?? id}>
           {id.replace("OAK-", "")}
         </a>

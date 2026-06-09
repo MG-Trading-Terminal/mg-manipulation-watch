@@ -2,7 +2,7 @@ import { scoreClass } from "../lib";
 import type { Token } from "../types";
 import { EvidenceLinks, FlagChips, OakChips, StatusChip } from "./chips";
 
-export function TokenTable({ tokens }: { tokens: Token[] }) {
+export function TokenTable({ tokens, startRank = 1 }: { tokens: Token[]; startRank?: number }) {
   return (
     <table>
       <thead>
@@ -12,7 +12,7 @@ export function TokenTable({ tokens }: { tokens: Token[] }) {
         </tr>
       </thead>
       <tbody>
-        {tokens.map((t, i) => <TokenRow key={t.symbol} rank={i + 1} t={t} />)}
+        {tokens.map((t, i) => <TokenRow key={t.symbol} rank={startRank + i} t={t} />)}
       </tbody>
     </table>
   );

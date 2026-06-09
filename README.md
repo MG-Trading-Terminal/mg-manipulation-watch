@@ -8,7 +8,7 @@ An automated scan that flags the **"crime-coin" pattern** in perpetual-futures
 tokens — a price driven by perps rather than fundamentals, engineered short
 squeezes that bleed traders via funding, supply concentrated in a few wallets,
 and wash-traded volume. Each signal is mapped to an
-[OnChain Attack Knowledge (OAK)](https://onchainattack.com) technique so a flag
+[OnChain Attack Knowledge (OAK)](https://onchainattack.org) technique so a flag
 is always explainable, never a black box.
 
 The **JSON dataset is the source of truth** ([`/data.json`](https://mgterminal.com/data.json));
@@ -66,13 +66,27 @@ bash scripts/serve.sh         # view at http://localhost:8787
 
 ## Repo map
 ```
-detector/   scoring engine, data sources, pipeline, fixtures
+detector/   scoring engine + data adapters (collect, venues, enrich, goplus, dexscreener)
 data/       universe.json (inputs) · candidates/ (auto) · confirmed/ (human)
-web/        static site generator (MeatGrinder design)
-dist/       generated site (do not edit) — deployed to mgterminal.com
+src/        Vite + React + TS frontend (App, components, generated data)
+scripts/    build-site-data.mjs (JSON→generated.ts), copy-static.mjs, local runners
+dist/       built site (generated) — deployed to mgterminal.com
 tests/      calibration regression
 ```
 
-## License / data
-Heuristic outputs only. Sources: Binance, CoinGecko, DefiLlama (free tiers),
-taxonomy by OAK. See `SOURCES.md`.
+## Public API
+The watchlist is **open data** — one JSON document, no key, no auth, refreshed every
+4 hours: **[mgterminal.com/data.json](https://mgterminal.com/data.json)**. Structure,
+fields, sign→OAK mapping and fetch examples (curl/Python/JS) are in **[API.md](./API.md)**.
+
+```bash
+curl -s https://mgterminal.com/data.json \
+  | jq '.by_token[] | select((.flags|length) >= 2) | {symbol, flags}'
+```
+
+## License
+- Code: **MIT** — [`LICENSE-code`](./LICENSE-code)
+- Data: **CC-BY-4.0** (attribute "MG Terminal") — [`LICENSE-data`](./LICENSE-data)
+
+Heuristic outputs only; not financial advice. Sources: 6 perp venues + CoinGecko +
+DefiLlama + GoPlus + DexScreener; taxonomy by [OAK](https://onchainattack.org). See `SOURCES.md`.

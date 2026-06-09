@@ -1,7 +1,13 @@
 /* Shared constants + helpers. Sign flags map to OAK techniques (see SOURCES.md). */
 
-export const OAK_URL = "https://onchainattack.com/technique/";
+export const OAK_BASE = "https://onchainattack.org";
 export const DISPLAY_LIMIT = 300;
+
+/** Technique ids (OAK-Tn.nnn) resolve to /technique/<id>; tactic-level ids
+ *  (e.g. OAK-T2) have no technique page, so link to the OAK site root. */
+export function oakUrl(id: string): string {
+  return /^OAK-T\d+\.\d{3}$/.test(id) ? `${OAK_BASE}/technique/${id}` : OAK_BASE;
+}
 
 export const FLAG_STYLE: Record<string, string> = {
   squeeze: "fl-red", "oi-dominance": "fl-amber", "mc/tvl-disconnect": "fl-info",

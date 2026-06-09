@@ -1,0 +1,15 @@
+Data licence — Creative Commons Attribution 4.0 International (CC-BY-4.0)
+
+The dataset published by this project (data/, dist/data.json, the snapshots, and
+the per-token watchlist) is licensed under CC-BY-4.0:
+https://creativecommons.org/licenses/by/4.0/
+
+You are free to share and adapt the data for any purpose, including commercially,
+provided you give appropriate credit — attribute "MG Terminal (mgterminal.com)" —
+and indicate if changes were made.
+
+The data is heuristic and provided "as is", without warranty. A `suspected` status
+is an unverified, automated signal, NOT a determination of wrongdoing, and nothing
+here is financial advice. See README.md and API.md.
+
+(Source code is MIT — see LICENSE-code.)

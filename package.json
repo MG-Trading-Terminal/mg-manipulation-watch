@@ -7,7 +7,7 @@
   "scripts": {
     "site:data": "node scripts/build-site-data.mjs",
     "dev": "npm run site:data && vite --host 0.0.0.0",
-    "build": "npm run site:data && tsc --noEmit && vite build && node scripts/copy-static.mjs",
+    "build": "npm run site:data && tsc --noEmit && vite build && node scripts/copy-static.mjs && node scripts/build-badges.mjs",
     "preview": "vite preview --host 0.0.0.0"
   },
   "dependencies": {

@@ -4,7 +4,7 @@
 An auto-updated, JSON-first **manipulation-risk watchlist** for perpetual-futures
 tokens. A scoring engine flags the "crime-coin" pattern (fundamental disconnect,
 perp-driven short-squeeze, concentrated supply, wash volume), every flag maps to
-an [OAK](https://onchainattack.com) technique, and a static site is generated
+an [OAK](https://onchainattack.org) technique, and a static site is generated
 from the data. Ships at **mgterminal.com** under the **MeatGrinder** brand.
 
 This is a sibling data source to the `bot-trader-2-0` system — the JSON is meant
