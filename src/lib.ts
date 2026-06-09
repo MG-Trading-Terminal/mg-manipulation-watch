@@ -46,6 +46,14 @@ export const STATUS_CHIP: Record<string, string> = {
 
 export const num = (n: number): string => Number(n).toLocaleString("en-US");
 
+/** Badge tier from a token's signs — mirrors scripts/build-badges.mjs. */
+export function badgeTier(flags: string[], status: string): { value: string; color: string; text: string } {
+  const flagged = status === "suspected" || flags.includes("honeypot") || flags.includes("high-tax");
+  if (flagged) return { value: "FLAGGED", color: "#ff5b5b", text: "#2a0606" };
+  if (flags.length >= 1) return { value: `${flags.length} SIGN${flags.length > 1 ? "S" : ""}`, color: "#ffb547", text: "#2a1c00" };
+  return { value: "OK", color: "#3ee07f", text: "#06210f" };
+}
+
 export function scoreClass(s: number): string {
   return s >= 70 ? "sc-hi" : s >= 50 ? "sc-mid" : "sc-lo";
 }

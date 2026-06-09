@@ -34,6 +34,28 @@ SNAP_DIR = os.path.join(ROOT, "data", "snapshots")
 HIST = os.path.join(ROOT, "data", "history", "_scans.jsonl")
 GP_CACHE = os.path.join(ROOT, "data", "enrich", "goplus.json")
 DX_CACHE = os.path.join(ROOT, "data", "enrich", "dexscreener.json")
+CONFIRMED_DIR = os.path.join(ROOT, "data", "confirmed")
+
+# Sort priority — human verdicts rise to the top, cleared sinks.
+STATUS_RANK = {"confirmed": 4, "likely": 3, "suspected": 2, "watchlist": 1, "cleared": 0}
+
+
+def _load_confirmed() -> dict:
+    """Human-gated verdicts keyed by SYMBOL. Each is sticky: the file persists, so
+    a `confirmed` scam is re-applied every scan and never silently leaves the list."""
+    out = {}
+    if not os.path.isdir(CONFIRMED_DIR):
+        return out
+    for fn in os.listdir(CONFIRMED_DIR):
+        if not fn.endswith(".json"):
+            continue
+        try:
+            with open(os.path.join(CONFIRMED_DIR, fn), "r", encoding="utf-8") as f:
+                v = json.load(f)
+            out[(v.get("symbol") or fn[:-5]).upper()] = v
+        except Exception:
+            continue
+    return out
 
 
 def _load_json(path) -> dict:
@@ -286,9 +308,34 @@ def run(venues=None) -> dict:
         for k, v in (r.get("context") or {}).items():
             if v is not None and k not in t["context"]:
                 t["context"][k] = v
-    token_list = sorted(by_token.values(),
-                        key=lambda t: (len(t["flags"]), t["score"], len(t["venues"])),
-                        reverse=True)
+    # --- Human-gated verdicts override the auto status (sticky) ---
+    # `confirmed` scam stays confirmed even if the auto-signals later go quiet —
+    # the verdict file persists, so once scam, it never silently leaves the list.
+    # `cleared` pins a false positive as clean. This is the token lifecycle control.
+    confirmed = _load_confirmed()
+    for sym, t in by_token.items():
+        v = confirmed.get(sym.upper())
+        if not v:
+            continue
+        st = v.get("status")
+        if st in ("confirmed", "likely", "cleared"):
+            t["status"] = st
+        t["human_reviewed"] = True
+        for key in ("reviewer", "reviewed_at", "summary"):
+            if v.get(key):
+                t[key] = v[key]
+        for o in (v.get("oak_techniques") or []):
+            if o not in t["oak_techniques"]:
+                t["oak_techniques"].append(o)
+        for e in (v.get("evidence") or []):
+            if e not in t["evidence"]:
+                t["evidence"].append(e)
+
+    token_list = sorted(
+        by_token.values(),
+        key=lambda t: (STATUS_RANK.get(t["status"], 1), len(t["flags"]), t["score"], len(t["venues"])),
+        reverse=True,
+    )
 
     # Flag tally is per TOKEN (so a coin on 5 venues counts once).
     flag_counts = {}
@@ -297,9 +344,12 @@ def run(venues=None) -> dict:
             flag_counts[fl] = flag_counts.get(fl, 0) + 1
     multi_sign = sum(1 for t in token_list if len(t["flags"]) >= 2)
     suspected_tokens = sum(1 for t in token_list if t["status"] == "suspected")
+    confirmed_count = sum(1 for t in token_list if t["status"] == "confirmed")
+    likely_count = sum(1 for t in token_list if t["status"] == "likely")
+    cleared_count = sum(1 for t in token_list if t["status"] == "cleared")
 
     dataset = {
-        "schema": "mgterminal.crime-coins/v0.5-bytoken",
+        "schema": "mgterminal.crime-coins/v0.6-lifecycle",
         "disclaimer": "Automated manipulation-risk heuristic. 'suspected' is an "
                       "unverified machine signal, not an accusation. See README.",
         "generated_at": now,
@@ -312,6 +362,9 @@ def run(venues=None) -> dict:
         "contract_scam": contract_scam,
         "suspected": suspected,
         "suspected_tokens": suspected_tokens,
+        "confirmed_count": confirmed_count,
+        "likely_count": likely_count,
+        "cleared_count": cleared_count,
         "multi_sign": multi_sign,
         "flag_counts": flag_counts,
         "by_token": token_list,

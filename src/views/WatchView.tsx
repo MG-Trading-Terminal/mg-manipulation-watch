@@ -92,7 +92,9 @@ export function WatchView() {
         <span className="right">{num(filtered.length)} match</span>
       </div>
 
-      <TokenTable tokens={shown} startRank={clampedPage * PAGE_SIZE + 1} />
+      <div className="table-wrap">
+        <TokenTable tokens={shown} startRank={clampedPage * PAGE_SIZE + 1} />
+      </div>
       <Pager page={clampedPage} pageCount={pageCount} total={filtered.length} pageSize={PAGE_SIZE} onPage={setPage} />
     </>
   );
