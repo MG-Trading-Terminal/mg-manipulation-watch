@@ -67,7 +67,28 @@ def norm_symbol(sym: str) -> str:
     return s
 
 
-def _coingecko_markets(pages: int) -> Dict[str, dict]:
+def _load_mappings() -> dict:
+    """Explicit perp-symbol -> CoinGecko-symbol overrides for cases where the perp
+    ticker differs from the token's ticker (e.g. VELODROME -> VELO). Maintained in
+    data/mappings.json so it's clear these resolve to the same token."""
+    path = os.path.join(ROOT, "data", "mappings.json")
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            m = json.load(f).get("mappings", {})
+        return {k.upper(): str(v) for k, v in m.items()}
+    except Exception:
+        return {}
+
+
+_MAPPINGS = _load_mappings()
+
+
+def resolved_key(sym: str) -> str:
+    """The cg-map key for a perp symbol: explicit mapping wins, else normalized."""
+    return _MAPPINGS.get((sym or "").upper()) or norm_symbol(sym)
+
+
+def _coingecko_markets(pages: int, by_id: dict = None, want_ids=None) -> Dict[str, dict]:
     out = {}
     for page in range(1, pages + 1):
         url = ("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd"
@@ -90,21 +111,27 @@ def _coingecko_markets(pages: int) -> Dict[str, dict]:
             mc = _f(c.get("market_cap"))
             if not s or mc is None:
                 continue
+            entry = {
+                "mc": mc,
+                "vol": _f(c.get("total_volume")),
+                "fdv": _f(c.get("fully_diluted_valuation")),
+                "id": c.get("id"),
+                # live market metrics (refreshed each scan via refresh_markets)
+                "price": _f(c.get("current_price")),
+                "ath": _f(c.get("ath")),
+                "ath_pct": _f(c.get("ath_change_percentage")),     # % from all-time high (the dump)
+                "ath_date": c.get("ath_date"),
+                "chg24": _f(c.get("price_change_percentage_24h_in_currency")),
+                "chg7d": _f(c.get("price_change_percentage_7d_in_currency")),
+                "chg30d": _f(c.get("price_change_percentage_30d_in_currency")),
+            }
+            # Index mapped tokens by id too: a perp like VELODROME maps to
+            # velodrome-finance, whose "VELO" symbol slot is won by an unrelated
+            # higher-cap coin (Velo Protocol) — so it never lands in `out`.
+            if by_id is not None and want_ids and c.get("id") in want_ids:
+                by_id[c["id"]] = entry
             if s not in out or mc > out[s]["mc"]:
-                out[s] = {
-                    "mc": mc,
-                    "vol": _f(c.get("total_volume")),
-                    "fdv": _f(c.get("fully_diluted_valuation")),
-                    "id": c.get("id"),
-                    # live market metrics (refreshed each scan via refresh_markets)
-                    "price": _f(c.get("current_price")),
-                    "ath": _f(c.get("ath")),
-                    "ath_pct": _f(c.get("ath_change_percentage")),     # % from all-time high (the dump)
-                    "ath_date": c.get("ath_date"),
-                    "chg24": _f(c.get("price_change_percentage_24h_in_currency")),
-                    "chg7d": _f(c.get("price_change_percentage_7d_in_currency")),
-                    "chg30d": _f(c.get("price_change_percentage_30d_in_currency")),
-                }
+                out[s] = entry
         time.sleep(2.5)  # free-tier pacing (python sleep, not the shell)
     return out
 
@@ -115,7 +142,8 @@ def refresh_markets(maps: dict, pages: int = 0) -> int:
     every scan) AND extend the symbol->id coverage deeper into the long tail.
     Static fields (platforms, detail) are left untouched. Depth = env CG_PAGES."""
     pages = pages or int(os.environ.get("CG_PAGES", "40"))
-    fresh = _coingecko_markets(pages)
+    by_id = maps.setdefault("cg_by_id", {})  # mapped-token market data, keyed by cg id
+    fresh = _coingecko_markets(pages, by_id=by_id, want_ids=set(_MAPPINGS.values()))
     cg = maps.setdefault("cg", {})
     n = 0
     for sym, m in fresh.items():
@@ -130,7 +158,12 @@ def refresh_markets(maps: dict, pages: int = 0) -> int:
 
 # Live market metrics for a perp base symbol (price, dump, changes, volume).
 def market_for(base_symbol: str, maps: dict):
-    cg = maps.get("cg", {}).get(norm_symbol(base_symbol))
+    # Mapped tokens resolve by cg id (their symbol slot is held by another coin);
+    # everyone else by normalized symbol.
+    cid = _MAPPINGS.get((base_symbol or "").upper())
+    cg = maps.get("cg_by_id", {}).get(cid) if cid else None
+    if not cg:
+        cg = maps.get("cg", {}).get(norm_symbol(base_symbol))
     if not cg:
         return None
     m = {k: cg.get(k) for k in ("price", "ath", "ath_pct", "ath_date", "chg24", "chg7d", "chg30d")}
@@ -212,18 +245,20 @@ def build(pages: int = 0) -> dict:
     return maps
 
 
-def contract_platforms(base_symbol: str, maps: dict):
-    """{platform: address} for a perp base symbol, via its CoinGecko id."""
-    cg = maps.get("cg", {}).get(norm_symbol(base_symbol))
-    cid = (cg or {}).get("id")
-    if not cid:
-        return None
-    return maps.get("platforms", {}).get(cid)
-
-
 def cg_id_for(base_symbol: str, maps: dict):
+    """CoinGecko id for a perp symbol: explicit mapping (perp -> cg_id) wins,
+    else the symbol-matched markets entry's id."""
+    mapped = _MAPPINGS.get((base_symbol or "").upper())
+    if mapped:
+        return mapped
     cg = maps.get("cg", {}).get(norm_symbol(base_symbol))
     return (cg or {}).get("id")
+
+
+def contract_platforms(base_symbol: str, maps: dict):
+    """{platform: address} for a perp base symbol, via its CoinGecko id."""
+    cid = cg_id_for(base_symbol, maps)
+    return maps.get("platforms", {}).get(cid) if cid else None
 
 
 def coingecko_detail(cg_id: str) -> dict:

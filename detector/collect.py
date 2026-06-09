@@ -25,7 +25,7 @@ import time
 from datetime import datetime, timezone
 from typing import List
 
-from .crime_score import score, Signals
+from .crime_score import score, Signals, risk_score, evidence_confidence, SUSPECT_RISK
 from .venues import all_tickers, ADAPTERS, mexc_tradfi
 from . import enrich, goplus, dexscreener, dumps
 
@@ -37,62 +37,29 @@ GP_CACHE = os.path.join(ROOT, "data", "enrich", "goplus.json")
 DX_CACHE = os.path.join(ROOT, "data", "enrich", "dexscreener.json")
 CG_DETAIL_CACHE = os.path.join(ROOT, "data", "enrich", "cg_detail.json")
 DUMPS_CACHE = os.path.join(ROOT, "data", "enrich", "dumps.json")
-DISCOVER_CACHE = os.path.join(ROOT, "data", "enrich", "discover.json")
 
 
-def _discover(by_token: dict, maps: dict, max_fetch: int = 400, pace: float = 0.3) -> dict:
-    """For tickers with NO CoinGecko match: DexScreener symbol-search. A DEX pair ->
-    crypto (recover contract/chain so GoPlus can run); no pair -> not a crypto token
-    (tokenized stock / index / commodity). Systematic — no hardcoded ticker list.
-    Cached + budgeted. Returns {'crypto':n,'equity':n}."""
-    cache = _load_json(DISCOVER_CACHE)
-    want = [s for s in by_token if not enrich.cg_id_for(s, maps) and s not in cache and not is_equity(s)]
-    attempts, got = 0, False
-    for sym in want:
-        if attempts >= max_fetch:
-            break
-        attempts += 1
-        r = dexscreener.search(sym, pace)
-        if r is not None:
-            cache[sym] = r
-            got = True
-    if got:
-        _save_json(DISCOVER_CACHE, cache)
-
-    nc, ne = 0, 0
-    for sym, t in by_token.items():
-        if enrich.cg_id_for(sym, maps):
-            continue                       # CoinGecko-matched = crypto, leave as is
-        if is_equity(sym):
-            t["kind"] = "equity"; ne += 1; continue
-        r = cache.get(sym)
-        if r and not r.get("_no_data"):
-            t["kind"] = "crypto"; nc += 1
-            c = t.setdefault("context", {})
-            if r.get("contract"):
-                c.setdefault("contract", r["contract"])
-                c.setdefault("chain", r["chain"])
-        elif r and r.get("_no_data"):
-            t["kind"] = "equity"; ne += 1   # no on-chain pair anywhere -> not crypto
-    return {"crypto": nc, "equity": ne}
 CONFIRMED_DIR = os.path.join(ROOT, "data", "confirmed")
+BLACKLIST = os.path.join(ROOT, "data", "blacklist.json")
 
 
-# Tokenized equities / indices / commodities (MEXC etc. list these as perps).
-# They are not crypto, have no on-chain profile, and must NOT be scored as crime coins.
-EQUITY_HINTS = {
-    "XAU", "XAG", "XAUT", "USOIL", "WTI", "UKOIL", "NG", "SPX", "NDX", "DJI", "IWM",
-    "QQQ", "SOXX", "EWJ", "EWY", "EWZ", "DRAM",
-    "AAPL", "MSFT", "NVDA", "TSLA", "AMZN", "META", "GOOG", "GOOGL", "NFLX", "AMD",
-    "INTC", "AMAT", "ARM", "CSCO", "AVGO", "QCOM", "MRVL", "MU", "SMCI", "NBIS",
-    "ASTS", "MSTR", "COIN", "HOOD", "PLTR", "ORCL", "CRCL", "BABA", "JD", "NIO",
-    "LI", "XPEV", "SAMSUNG", "SKHYNIX", "HYUNDAI", "XIAOMI", "FUTU", "TSM", "BRK",
-}
+def _load_blacklist() -> set:
+    """Manually-curated non-crypto perps (tokenized stocks / ETFs / indices /
+    commodities / forex). These are NOT crime coins — a different asset class — so
+    they are EXCLUDED from the watchlist entirely (not scored, not in the API or
+    site). Unioned at runtime with venue-labelled tradfi (MEXC conceptPlate)."""
+    try:
+        with open(BLACKLIST, "r", encoding="utf-8") as f:
+            return {s.upper() for s in (json.load(f).get("symbols") or [])}
+    except Exception:
+        return set()
 
 
-def is_equity(sym: str) -> bool:
+def is_excluded(sym: str, blacklist: set) -> bool:
+    """A perp that is not a crypto token: explicit blacklist, venue tradfi label, or
+    the MEXC '…STOCK' tokenized-equity suffix."""
     s = (sym or "").upper()
-    return s.endswith("STOCK") or s in EQUITY_HINTS
+    return s.endswith("STOCK") or s in blacklist
 
 
 def _token_dumps(by_token: dict, maps: dict, max_fetch: int = 250, pace: float = 0.6) -> int:
@@ -349,7 +316,14 @@ def run(venues=None) -> dict:
         tradfi = mexc_tradfi()  # venue-labeled stocks/indices/commodities/forex
     except Exception:
         tradfi = set()
-    tickers = all_tickers(venues)
+    excluded = _load_blacklist() | tradfi  # non-crypto perps (stocks/indices/forex/commodities)
+
+    # Drop tokenized equities & co. up front — they are a different asset class, not
+    # crime coins, so they never enter scoring, the API, or the site. Count what's cut.
+    all_rows = all_tickers(venues)
+    tickers = [tk for tk in all_rows if not is_excluded(tk["symbol"], excluded)]
+    excluded_syms = {tk["symbol"].upper() for tk in all_rows if is_excluded(tk["symbol"], excluded)}
+    excluded_markets = len(all_rows) - len(tickers)
 
     # Contract + market-structure pass: resolve EVM contracts, fetch GoPlus
     # (honeypot/tax/mint/authority/holders) and DexScreener (liquidity/pair-age).
@@ -481,19 +455,14 @@ def run(venues=None) -> dict:
         max_fetch=int(os.environ.get("DUMP_BUDGET", "250")),
         pace=float(os.environ.get("PROFILE_PACE", str(default_pace))),
     )
-    # NOTE: DexScreener symbol-search auto-classification is too noisy to trust
-    # (same-ticker memecoins, e.g. Solana "IBM"; perp symbol != token ticker, e.g.
-    # VELODROME vs VELO). _discover() is kept for manual use, NOT wired into scoring.
+    # NOTE: where a perp ticker differs from the token's CoinGecko symbol (e.g.
+    # VELODROME vs VELO, which collides with Velo Protocol), the resolution is an
+    # explicit, verified entry in data/mappings.json — never a fuzzy symbol search.
 
     # Attach fresh market metrics (price, dump-from-ATH, changes, volume) + liveness,
-    # and turn a REALIZED dump into a sign — already-happened scams (e.g. -98% from
-    # ATH) must not sit at score 0. A collapse alone can be a bear market, so it only
-    # forces `suspected` when paired with a structural sign (the realized-rug shape).
-    STRUCTURAL = {"low-float", "thin-liquidity", "holder-concentration",
-                  "mc/tvl-disconnect", "mintable", "owner-control", "honeypot"}
+    # and turn a REALIZED dump into a sign — an already-happened scam (e.g. -98% from
+    # ATH) is the highest-risk case of all and must not sit at score 0.
     for sym, t in by_token.items():
-        if sym.upper() in tradfi or is_equity(sym):
-            t["kind"] = "equity"          # tokenized stock/index/commodity — not crypto
         m = enrich.market_for(sym, maps)
         if not m:
             continue
@@ -508,10 +477,6 @@ def run(venues=None) -> dict:
             t["liveness"] = "low"
         else:
             t["liveness"] = "active"
-
-        # Tokenized equities are not crime coins — skip the realized-dump scoring.
-        if t.get("kind") == "equity":
-            continue
 
         # Historical dump record (preferred) with snapshot ATH-drawdown as fallback.
         dm = t.get("dumps") or {}
@@ -529,15 +494,18 @@ def run(venues=None) -> dict:
         if t["liveness"] == "dead" and "dead" not in t["flags"]:
             t["flags"].append("dead")
 
-        # Realized-rug shape -> suspected. The classic pump→dump shape needs only one
-        # structural sign; a plain deep collapse needs >=2 (or dead) so a bear-market
-        # coin isn't condemned. Humans (cleared/confirmed) are never overridden.
+    # --- Unified evidence score + status (single source of truth) -------------
+    # Now that every sign is attached, the displayed score = the evidence behind
+    # it (so a realized rug can't read 0), and status DERIVES from that score:
+    # hard evidence (realized rug / honeypot) clears SUSPECT_RISK, while
+    # heuristic-only signs cap below it — so a `suspected` call always rests on
+    # hard evidence, never a legit-token false positive. Humans are never touched.
+    for sym, t in by_token.items():
+        t["score"] = risk_score(t["flags"])
+        t["confidence"] = round(evidence_confidence(t["flags"]), 3)
         if not t.get("human_reviewed"):
-            nstruct = len(STRUCTURAL & set(t["flags"]))
-            if "pump-dump" in t["flags"] and nstruct >= 1:
-                t["status"] = "suspected"
-            elif "collapsed" in t["flags"] and (nstruct >= 2 or "dead" in t["flags"]):
-                t["status"] = "suspected"
+            t["status"] = ("suspected" if ("honeypot" in t["flags"]
+                           or t["score"] >= SUSPECT_RISK) else "watchlist")
 
     token_list = sorted(
         by_token.values(),
@@ -555,12 +523,10 @@ def run(venues=None) -> dict:
     confirmed_count = sum(1 for t in token_list if t["status"] == "confirmed")
     likely_count = sum(1 for t in token_list if t["status"] == "likely")
     cleared_count = sum(1 for t in token_list if t["status"] == "cleared")
-    equity_count = sum(1 for t in token_list if t.get("kind") == "equity")
-    crypto = [t for t in token_list if t.get("kind") != "equity"]
-    crypto_profiled = sum(1 for t in crypto if t.get("profile"))
+    profiled_count = sum(1 for t in token_list if t.get("profile"))
 
     dataset = {
-        "schema": "mgterminal.crime-coins/v0.6-lifecycle",
+        "schema": "mgterminal.crime-coins/v0.7-crypto-only",
         "api_version": 1,
         "disclaimer": "Automated manipulation-risk heuristic. 'suspected' is an "
                       "unverified machine signal, not an accusation. See README.",
@@ -578,9 +544,9 @@ def run(venues=None) -> dict:
         "confirmed_count": confirmed_count,
         "likely_count": likely_count,
         "cleared_count": cleared_count,
-        "equity_count": equity_count,
-        "crypto_count": len(crypto),
-        "crypto_profiled": crypto_profiled,
+        "crypto_profiled": profiled_count,
+        "excluded_count": len(excluded_syms),
+        "excluded_markets": excluded_markets,
         "multi_sign": multi_sign,
         "flag_counts": flag_counts,
         "by_token": token_list,

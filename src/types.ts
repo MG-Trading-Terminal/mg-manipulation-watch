@@ -98,6 +98,9 @@ export interface SiteData {
   confirmed_count?: number;
   likely_count?: number;
   cleared_count?: number;
+  crypto_profiled?: number;
+  excluded_count?: number;
+  excluded_markets?: number;
   multi_sign: number;
   flag_counts: Record<string, number>;
   by_token: Token[];

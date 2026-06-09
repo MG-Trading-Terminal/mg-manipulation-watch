@@ -1,0 +1,18 @@
+{
+  "_comment": "Non-crypto perps (tokenized stocks / ETFs / indices / commodities / forex). NOT crime coins — excluded from the watchlist entirely. This manual list is UNIONED with venue-labelled tradfi (MEXC conceptPlate via venues.mexc_tradfi). Add a ticker here to permanently exclude it. Suffix 'STOCK' is auto-excluded.",
+  "symbols": [
+    "XAU", "XAG", "XAUT", "USOIL", "UKOIL", "WTI", "NG", "GOLD", "SILVER",
+    "SPX", "NDX", "DJI", "IWM", "QQQ", "SPY", "SOXX", "SOXL", "SOXS",
+    "EWJ", "EWY", "EWZ", "VOO", "VTI", "DIA",
+    "AAPL", "MSFT", "NVDA", "TSLA", "AMZN", "META", "GOOG", "GOOGL", "NFLX",
+    "AMD", "INTC", "AMAT", "ARM", "CSCO", "AVGO", "QCOM", "MRVL", "MU", "TXN",
+    "SMCI", "NBIS", "ASTS", "MSTR", "COIN", "HOOD", "PLTR", "ORCL", "CRCL",
+    "BABA", "JD", "NIO", "LI", "XPEV", "PDD", "BIDU",
+    "SAMSUNG", "SKHYNIX", "HYUNDAI", "XIAOMI", "FUTU", "TSM", "BRK", "BRKB",
+    "DELL", "IBM", "WDC", "SNDK", "STX", "HPQ", "LITE", "AAOI", "CRDO",
+    "LLY", "JNJ", "PFE", "MRK", "UNH", "ABBV", "KO", "PEP", "MCD", "CL",
+    "BA", "RKLB", "LMT", "RTX", "GE", "CAT", "DE",
+    "IREN", "CRWV", "ONDS", "BE", "BZ", "CBRS", "AMC", "GME", "DRAM",
+    "JPM", "BAC", "GS", "V", "MA", "PYPL", "SQ", "XOM", "CVX", "WMT", "COST"
+  ]
+}

@@ -98,6 +98,7 @@ export function WatchView() {
       <div className="eyebrow" style={{ margin: "10px 2px 0" }}>venues: {venueLine}</div>
       <div className="eyebrow" style={{ margin: "5px 2px 2px" }}>
         checked: GoPlus {d.contract_checked} · DexScreener {d.dex_checked} · {num(d.count)} markets
+        {d.excluded_count ? ` · ${d.excluded_count} tokenized stocks/indices excluded` : ""}
       </div>
 
       <div className="eyebrow" style={{ margin: "26px 2px 2px" }}>

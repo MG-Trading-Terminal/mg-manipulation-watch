@@ -171,6 +171,90 @@ _DEFS = [
 ]
 
 
+# --------------------------------------------------------------------------- #
+# Evidence-based risk score                                                    #
+# --------------------------------------------------------------------------- #
+# The live-signal score above only measures an ACTIVE squeeze (funding / OI /
+# MC). A coin that has ALREADY rugged — RAVE: pump->dump, -98%, dead liquidity —
+# shows nothing on those live signals yet is the highest-risk case of all, so it
+# would read score 0 while flagged `suspected`. That is the bug this fixes.
+#
+# The DISPLAYED score is therefore an EVIDENCE score, built in TWO tiers:
+#
+#   HARD evidence — a realized manipulation outcome (pump→dump, collapse, death)
+#   or a definitive contract scam (honeypot). Low false-positive; this is what
+#   justifies a HIGH score and drives the full 0-100 scale.
+#
+#   SOFT evidence — heuristic contract / structure / mechanics signs. These ALSO
+#   fire on perfectly legit tokens (a multisig reads as `owner-control`, staked
+#   supply as `holder-concentration`, a thin perp-DEX pool as `thin-liquidity`),
+#   so on their OWN they cap at SOFT_CAP — "elevated, watch", never a top score.
+#
+# Net effect: a coin that already rugged (RAVE) scores high; a blue-chip that
+# merely trips heuristic flags (GMX) stays mid. Score and status are consistent:
+# a `suspected` coin (gated on hard evidence / honeypot) can never read 0.
+_HARD_POINTS = {
+    "honeypot": 100,                # can't sell — definitive contract scam
+    "pump-dump": 50,                # ran >=3x then crashed >=80%, no recovery — the crime shape (suspects alone)
+    "collapsed": 28,                # >=90% peak->trough (needs corroboration to suspect)
+    "dead": 18,                     # abandoned, no volume
+}
+_SOFT_POINTS = {
+    # contract red-flags (GoPlus / OAK T1,T3) — heuristic, fire on legit tokens too
+    "high-tax": 18,                 # extractive tax — least FP-prone of the contract signs
+    "owner-control": 12,
+    "holder-concentration": 12,
+    "mintable": 10,
+    "closed-source": 6,
+    # market structure (OAK T2)
+    "thin-liquidity": 12,
+    "fresh-launch": 10,
+    "low-float": 8,
+    # live perp mechanics (the original squeeze scorer's signs)
+    "squeeze": 14,
+    "oi-dominance": 8,
+    "mc/tvl-disconnect": 8,
+    "ps-disconnect": 6,
+}
+SOFT_CAP = 45  # heuristic-only evidence tops out here — "elevated", not "confirmed-rug high"
+# Evidence score at/above which an automated assessment becomes `suspected`. It
+# sits ABOVE SOFT_CAP by design: only HARD evidence (realized rug / honeypot) can
+# clear it, so a `suspected` call never rests on heuristic-only flags that also
+# fire on legit tokens (a blue-chip with a multisig stays watchlist, capped <50).
+SUSPECT_RISK = 50
+
+# Each sign belongs to one evidence group; corroboration across groups raises
+# confidence (a lone sign is weak; signs from 3+ groups are strong).
+_FLAG_GROUPS = {
+    "realized": {"pump-dump", "collapsed", "dead"},
+    "contract": {"honeypot", "high-tax", "mintable", "owner-control",
+                 "closed-source", "holder-concentration"},
+    "structure": {"thin-liquidity", "low-float", "fresh-launch"},
+    "mechanics": {"squeeze", "oi-dominance", "mc/tvl-disconnect", "ps-disconnect"},
+}
+
+
+def risk_score(flags) -> int:
+    """Evidence-based 0-100 risk score. Hard evidence (realized rug / honeypot)
+    drives the full scale; soft heuristic signs alone cap at SOFT_CAP."""
+    fl = set(flags or [])
+    if "honeypot" in fl:
+        return 100
+    hard = sum(_HARD_POINTS.get(f, 0) for f in fl)
+    soft = sum(_SOFT_POINTS.get(f, 0) for f in fl)
+    if hard == 0:
+        return min(SOFT_CAP, soft)        # heuristic-only -> elevated at most
+    return min(100, hard + soft)          # realized harm present -> full scale
+
+
+def evidence_confidence(flags) -> float:
+    """Corroboration across the independent evidence groups (0-1): signs from 3+
+    different groups => full confidence; a single lone sign is weak."""
+    fl = set(flags or [])
+    groups = sum(1 for g in _FLAG_GROUPS.values() if fl & g)
+    return min(1.0, groups / 3.0)
+
+
 @dataclass
 class Assessment:
     token: str

@@ -1,0 +1,16 @@
+{
+  "_comment": "Perp-symbol -> CoinGecko id overrides. Some venues list a perp under a ticker that differs from the token's CoinGecko symbol, or under a ticker that COLLIDES with an unrelated coin (e.g. VELODROME's token symbol is VELO, which also belongs to 'Velo Protocol'). Resolving by symbol alone would attach the wrong project/price/dumps. Each entry below is a verified perp -> exact CoinGecko id so the watchlist shows the SAME token across venues. id-based, not symbol-based, to dodge ticker collisions. Verified live (detector.enrich.cg_id_for is mapping-first). Add an entry as `\"PERPSYMBOL\": \"coingecko-id\"`.",
+  "mappings": {
+    "VELODROME": "velodrome-finance",
+    "PUMPBTC": "pumpbtc",
+    "BEAMX": "beam-2",
+    "MATIC": "matic-network",
+    "MYRO": "myro",
+    "LUNA2": "terra-luna-2",
+    "FXS": "frax-share",
+    "PUMPFUN": "pump-fun",
+    "DAR": "mines-of-dalarnia",
+    "RONIN": "ronin",
+    "KLAY": "kaia"
+  }
+}
