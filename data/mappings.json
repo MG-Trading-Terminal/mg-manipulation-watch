@@ -11,6 +11,11 @@
     "PUMPFUN": "pump-fun",
     "DAR": "mines-of-dalarnia",
     "RONIN": "ronin",
-    "KLAY": "kaia"
+    "KLAY": "kaia",
+    "TONCOIN": "the-open-network",
+    "ZKSYNC": "zksync",
+    "RNDR": "render-token",
+    "STETH": "staked-ether",
+    "WBTC": "wrapped-bitcoin"
   }
 }

@@ -13,6 +13,20 @@
     "LLY", "JNJ", "PFE", "MRK", "UNH", "ABBV", "KO", "PEP", "MCD", "CL",
     "BA", "RKLB", "LMT", "RTX", "GE", "CAT", "DE",
     "IREN", "CRWV", "ONDS", "BE", "BZ", "CBRS", "AMC", "GME", "DRAM",
-    "JPM", "BAC", "GS", "V", "MA", "PYPL", "SQ", "XOM", "CVX", "WMT", "COST"
+    "JPM", "BAC", "GS", "V", "MA", "PYPL", "SQ", "XOM", "CVX", "WMT", "COST",
+
+    "ACHR", "ADBE", "ADVANTEST", "AKESO", "ANET", "ANTA", "APH", "APLD", "ARQQ",
+    "ASML", "AVAV", "AXON", "AXTI", "BMNR", "BWXT", "BX", "CCJ", "CEG", "CIEN",
+    "CITIC", "CMI", "COHR", "CRWD", "DDOG", "DXYZ", "EBAY", "EH", "FN", "FSLR",
+    "GEELY", "GLW", "HD", "HIMS", "HPE", "HSBC", "IONQ", "JCI", "JOBY", "KIOXIA",
+    "KLAC", "KOPN", "KTOS", "KUAISHOU", "LASERTEC", "LENOVO", "LUNR", "LWLG",
+    "MDB", "MEITUAN", "NOC", "NOK", "NOKIA", "NTAP", "NVO", "OKLO", "OUST",
+    "PANW", "PG", "PL", "POET", "QBTS", "QUBT", "RDDT", "RGTI", "SATL", "SITM",
+    "SPIR", "SUMIELEC", "SUNAC", "TENCENT", "TOKYOEL", "TW88", "TWLO", "UBER",
+    "TLT", "AGG", "DFEN", "EWH", "IAU", "IEFA", "INDA", "KWEB", "SQQQ", "TQQQ",
+    "TRAHK", "NFTI",
+    "AUS200", "GER40", "JPN225", "NDX100", "SP500", "UK100", "US2000", "HSCHKD",
+    "BTCDOM", "ETHBTC", "EURUSD", "GBPUSD", "NATGAS",
+    "BVIX", "EVIX", "GVZ", "XAL", "XCU", "XNI", "XPB", "XUNCE"
   ]
 }

@@ -62,7 +62,12 @@ def _f(x) -> Optional[float]:
 
 def norm_symbol(sym: str) -> str:
     """Normalize a perp base symbol for cross-source matching."""
-    s = (sym or "").upper().strip()
+    s = (sym or "").strip()
+    # Bybit notates 1000x markets with a lowercase 'k' prefix (kPEPE == 1000PEPE).
+    # Strip it BEFORE upper() so it's not confused with K-coins (KAS, KSM, KAITO).
+    if len(s) >= 2 and s[0] == "k" and s[1].isalpha() and s[1].isupper():
+        s = s[1:]
+    s = s.upper()
     s = _PREFIX.sub("", s)
     return s
 
