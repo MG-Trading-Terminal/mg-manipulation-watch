@@ -107,11 +107,13 @@ _FLAG_STYLE = {"squeeze": "fl-red", "oi-dominance": "fl-amber",
                "mc/tvl-disconnect": "fl-info", "ps-disconnect": "fl-info",
                "low-float": "fl-amber", "honeypot": "fl-red", "high-tax": "fl-red",
                "mintable": "fl-amber", "owner-control": "fl-amber",
-               "closed-source": "fl-info", "holder-concentration": "fl-amber"}
+               "closed-source": "fl-info", "holder-concentration": "fl-amber",
+               "thin-liquidity": "fl-amber", "fresh-launch": "fl-info"}
 _FLAG_LABEL = {"squeeze": "SQUEEZE", "oi-dominance": "OI", "mc/tvl-disconnect": "MC/TVL",
                "ps-disconnect": "P/S", "low-float": "LOW-FLOAT", "honeypot": "HONEYPOT",
                "high-tax": "HIGH-TAX", "mintable": "MINTABLE", "owner-control": "OWNER-CTRL",
-               "closed-source": "CLOSED-SRC", "holder-concentration": "HOLDERS"}
+               "closed-source": "CLOSED-SRC", "holder-concentration": "HOLDERS",
+               "thin-liquidity": "THIN-LIQ", "fresh-launch": "FRESH"}
 
 
 def _flag_chips(flags, ctx) -> str:
@@ -126,56 +128,96 @@ def _flag_chips(flags, ctx) -> str:
             title = f"P/S {ctx['ps']}x"
         elif fl == "low-float" and ctx.get("float") is not None:
             title = f"{round(ctx['float'] * 100)}% circulating of FDV"
+        elif fl == "thin-liquidity" and ctx.get("liq_usd") is not None:
+            title = f"pool ${ctx['liq_usd']:,} liquidity"
+        elif fl == "fresh-launch" and ctx.get("pair_age_days") is not None:
+            title = f"pair {ctx['pair_age_days']}d old"
+        elif fl == "holder-concentration" and ctx.get("top_holder_control") is not None:
+            title = f"top holders {round(ctx['top_holder_control'] * 100)}%"
         out.append(f'<span class="fl {_FLAG_STYLE.get(fl, "fl-info")}" '
                    f'title="{_esc(title)}">{_esc(_FLAG_LABEL.get(fl, fl))}</span>')
     return " ".join(out)
 
 
-def _row(rank: int, r: dict) -> str:
-    score = r.get("score", 0)
-    conf = r.get("confidence", 0.0)
-    flags = r.get("flags", [])
+def _row(rank: int, t: dict) -> str:
+    score = t.get("score", 0)
+    flags = t.get("flags", [])
+    venues = t.get("venues", [])
+    vlabel = ", ".join(venues[:4]) + ("…" if len(venues) > 4 else "")
     return f"""
-    <tr class="row" data-status="{_esc(r.get('status',''))}" data-flags="{len(flags)}" data-score="{score}">
+    <tr class="row" data-status="{_esc(t.get('status',''))}" data-flags="{len(flags)}" data-score="{score}">
       <td class="c-rank num">{rank:02d}</td>
-      <td class="c-sym"><span class="sym mono">{_esc(r.get('symbol',''))}</span></td>
-      <td class="c-venue"><span class="venue">{_esc(r.get('venue',''))}</span></td>
-      <td class="c-status">{_status_chip(r.get('status',''))}</td>
+      <td class="c-sym"><span class="sym mono">{_esc(t.get('symbol',''))}</span></td>
+      <td class="c-venue"><span class="venue" title="{_esc(', '.join(venues))}">{len(venues)}× <span class="vsub">{_esc(vlabel)}</span></span></td>
+      <td class="c-status">{_status_chip(t.get('status',''))}</td>
       <td class="c-score">
         <div class="score-wrap">
           <span class="score num {_score_class(score)}">{score}</span>
           <span class="gauge"><span class="gauge-fill {_score_class(score)}" style="width:{max(0,min(100,score))}%"></span></span>
         </div>
       </td>
-      <td class="c-conf num">{conf:.2f}</td>
-      <td class="c-flags">{_flag_chips(flags, r.get('context', {}))}</td>
-      <td class="c-oak">{_oak_chips(r.get('oak_techniques', []))}</td>
-      <td class="c-ev">{_evidence(r.get('evidence', []))}</td>
+      <td class="c-flags">{_flag_chips(flags, t.get('context', {}))}</td>
+      <td class="c-oak">{_oak_chips(t.get('oak_techniques', []))}</td>
+      <td class="c-ev">{_evidence(t.get('evidence', []))}</td>
     </tr>"""
 
 
-DISPLAY_LIMIT = 250  # render the top N rows; full set lives in data.json
+# Group flags for the visualization (contract / market / fundamental).
+_FLAG_GROUPS = [
+    ("contract", "fl-red", ["honeypot", "high-tax", "mintable", "owner-control",
+                            "holder-concentration", "closed-source"]),
+    ("market", "fl-amber", ["squeeze", "oi-dominance", "thin-liquidity", "fresh-launch"]),
+    ("fundamental", "fl-info", ["mc/tvl-disconnect", "ps-disconnect", "low-float"]),
+]
+
+
+def _flag_viz(flag_counts: dict, total: int) -> str:
+    """Horizontal bar chart of the per-token sign tally, grouped by category."""
+    if not flag_counts:
+        return ""
+    mx = max(flag_counts.values()) or 1
+    blocks = []
+    for gname, cls, keys in _FLAG_GROUPS:
+        bars = []
+        for k in keys:
+            n = flag_counts.get(k, 0)
+            if not n:
+                continue
+            w = round(n / mx * 100)
+            bars.append(
+                f'<div class="vrow"><span class="vlabel">{_esc(_FLAG_LABEL.get(k, k))}</span>'
+                f'<span class="vbar"><span class="vfill {cls}" style="width:{w}%"></span></span>'
+                f'<span class="vn num">{n}</span></div>')
+        if bars:
+            blocks.append(f'<div class="vgroup"><div class="vgname">{gname}</div>{"".join(bars)}</div>')
+    return f'<div class="viz">{"".join(blocks)}</div>'
+
+
+DISPLAY_LIMIT = 300  # render the top N tokens; full set lives in data.json
 
 
 def render(dataset: dict) -> str:
-    tokens = dataset.get("tokens", [])
+    tokens = dataset.get("by_token") or dataset.get("tokens", [])
     shown = tokens[:DISPLAY_LIMIT]
     rows = "\n".join(_row(i + 1, r) for i, r in enumerate(shown))
     gen = dataset.get("generated_at", "")
-    count = dataset.get("count", len(tokens))
-    suspected = dataset.get("suspected", 0)
+    count = dataset.get("token_count", len(tokens))
+    suspected = dataset.get("suspected_tokens", dataset.get("suspected", 0))
     multi_sign = dataset.get("multi_sign", 0)
     venues = dataset.get("venues", {})
     fc = dataset.get("flag_counts", {})
+    markets = dataset.get("count", 0)
+    checks = (f"GoPlus {dataset.get('contract_checked',0)} · "
+              f"DexScreener {dataset.get('dex_checked',0)} · {markets:,} markets")
     venue_line = " · ".join(f"{k} {v}" for k, v in sorted(venues.items())) or "—"
-    flags_line = " · ".join(f"{k} {v}" for k, v in sorted(fc.items())) or "—"
-    shown_note = (f"top {len(shown)} of {count:,} markets — full set in "
+    flag_viz = _flag_viz(fc, count)
+    shown_note = (f"top {len(shown)} of {count:,} tokens — full set in "
                   f"<a class='json-link' href='data.json'>data.json</a>")
 
     return TEMPLATE.format(
         rows=rows, gen=_esc(gen), count=f"{count:,}", suspected=suspected,
         multi_sign=multi_sign, venue_line=_esc(venue_line),
-        flags_line=_esc(flags_line), shown_note=shown_note,
+        checks=_esc(checks), flag_viz=flag_viz, shown_note=shown_note,
     )
 
 
@@ -323,7 +365,23 @@ TEMPLATE = """<!DOCTYPE html>
   .fl-red {{ background:rgba(255,91,91,.10); border:1px solid rgba(255,91,91,.4); color:var(--down); }}
   .fl-amber {{ background:rgba(255,181,71,.10); border:1px solid rgba(255,181,71,.4); color:var(--warn); }}
   .fl-info {{ background:rgba(122,167,255,.08); border:1px solid rgba(122,167,255,.35); color:var(--info); }}
-  .c-flags {{ max-width:200px; }}
+  .c-flags {{ max-width:230px; }}
+  .venue .vsub {{ color:var(--fg-4); font-size:10px; }}
+
+  /* flag-distribution visualization */
+  .viz {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:18px 28px;
+    margin:8px 0 30px; padding:18px 20px; border:1px solid var(--line-1);
+    border-radius:10px; background:var(--bg-1); }}
+  .vgname {{ font-family:var(--font-mono); font-size:10px; text-transform:uppercase;
+    letter-spacing:.16em; color:var(--fg-4); margin-bottom:9px; }}
+  .vrow {{ display:flex; align-items:center; gap:8px; margin:5px 0; }}
+  .vlabel {{ font-family:var(--font-mono); font-size:10px; color:var(--fg-3); width:78px;
+    text-align:right; letter-spacing:.03em; }}
+  .vbar {{ flex:1; height:7px; background:var(--bg-3); border-radius:999px; overflow:hidden; }}
+  .vfill {{ display:block; height:100%; border-radius:999px; }}
+  .vfill.fl-red {{ background:var(--down); }} .vfill.fl-amber {{ background:var(--warn); }}
+  .vfill.fl-info {{ background:var(--info); }}
+  .vn {{ font-family:var(--font-mono); font-size:11px; color:var(--fg-2); width:34px; }}
 
   .oak {{ font-family:var(--font-mono); font-size:10px; color:var(--mg); padding:2px 6px;
     border:1px solid var(--mg-dim); border-radius:4px; background:var(--mg-soft); }}
@@ -368,13 +426,15 @@ TEMPLATE = """<!DOCTYPE html>
   </div>
 
   <div class="stats">
-    <div class="stat"><div class="k">Markets</div><div class="v">{count}</div></div>
-    <div class="stat"><div class="k">Suspected · squeeze</div><div class="v warn">{suspected}</div></div>
+    <div class="stat"><div class="k">Tokens</div><div class="v">{count}</div></div>
+    <div class="stat"><div class="k">Suspected</div><div class="v warn">{suspected}</div></div>
     <div class="stat"><div class="k">Multi-sign · ≥2</div><div class="v">{multi_sign}</div></div>
     <div class="stat"><div class="k">Updated (UTC)</div><div class="v" style="font-size:14px">{gen}</div></div>
   </div>
   <div class="eyebrow" style="margin:10px 2px 0">venues: {venue_line}</div>
-  <div class="eyebrow" style="margin:5px 2px 0">flags: {flags_line}</div>
+  <div class="eyebrow" style="margin:5px 2px 2px">checked: {checks}</div>
+
+  {flag_viz}
 
   <div class="controls">
     <button class="filt on" data-f="all">All</button>
@@ -386,7 +446,7 @@ TEMPLATE = """<!DOCTYPE html>
 
   <table>
     <thead><tr>
-      <th>#</th><th>Token</th><th>Venue</th><th>Status</th><th>Score</th><th>Conf</th>
+      <th>#</th><th>Token</th><th>Venues</th><th>Status</th><th>Score</th>
       <th>Signs</th><th>OAK</th><th>Evidence</th>
     </tr></thead>
     <tbody id="rows">
@@ -395,11 +455,12 @@ TEMPLATE = """<!DOCTYPE html>
   </table>
 
   <footer>
-    Sources: 6 perp venues — Binance · Bybit · Bitget · Gate · MEXC · Hyperliquid
-    (funding · OI · volume). Market-wide ranking is funding-driven; OI/MC, P/S,
-    supply &amp; wash enrich curated tokens (v0.2). Taxonomy:
-    <a href="https://onchainattack.com" target="_blank" rel="noopener">OnChain Attack Knowledge (OAK)</a>.<br/>
-    Dataset: <a class="json-link" href="data.json">data.json</a> · schema <span class="mono">mgterminal.crime-coins/v0.2-multivenue</span>.
+    Sources: 6 perp venues (Binance · Bybit · Bitget · Gate · MEXC · Hyperliquid —
+    funding · OI · volume) + CoinGecko (MC · float) + DefiLlama (TVL · fees) +
+    GoPlus (contract security) + DexScreener (DEX liquidity · pair age). One row per
+    token; signs unioned across venues. Every sign maps to an
+    <a href="https://onchainattack.com" target="_blank" rel="noopener">OAK</a> technique.<br/>
+    Dataset: <a class="json-link" href="data.json">data.json</a> · schema <span class="mono">mgterminal.crime-coins/v0.5-bytoken</span>.
     Generated automatically — do not hand-edit dist/.<br/>
     © MeatGrinder · MG Terminal. Manipulation-risk heuristic, not financial advice.
   </footer>

@@ -26,13 +26,50 @@ from typing import List
 
 from .crime_score import score, Signals
 from .venues import all_tickers, ADAPTERS
-from . import enrich, goplus
+from . import enrich, goplus, dexscreener
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT_DIR = os.path.join(ROOT, "data", "candidates")
 SNAP_DIR = os.path.join(ROOT, "data", "snapshots")
 HIST = os.path.join(ROOT, "data", "history", "_scans.jsonl")
 GP_CACHE = os.path.join(ROOT, "data", "enrich", "goplus.json")
+DX_CACHE = os.path.join(ROOT, "data", "enrich", "dexscreener.json")
+
+
+def _load_json(path) -> dict:
+    if os.path.exists(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return {}
+    return {}
+
+
+def _save_json(path, obj) -> None:
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(obj, f)
+
+
+def _dexscreener_markets(contracts, max_fetch=600):
+    """{symbol: market} for resolved contracts, cached across runs."""
+    cache = _load_json(DX_CACHE)
+    want = []
+    for sym, ca in contracts.items():
+        if ca and ca[1] not in cache:
+            want.append(ca[1])
+    for addr in want[:max_fetch]:
+        cache[addr] = dexscreener.token_market(addr)
+    if want:
+        _save_json(DX_CACHE, cache)
+    out = {}
+    for sym, ca in contracts.items():
+        if ca:
+            m = cache.get(ca[1])
+            if m and not m.get("_no_data"):
+                out[sym] = m
+    return out
 
 
 def _load_goplus_cache() -> dict:
@@ -153,13 +190,15 @@ def run(venues=None) -> dict:
     os.makedirs(OUT_DIR, exist_ok=True)
     os.makedirs(SNAP_DIR, exist_ok=True)
 
+    now_ms = datetime.now(timezone.utc).timestamp() * 1000.0
     maps = enrich.load()  # bulk MC/TVL/fees maps (cached) -> full signal set
     tickers = all_tickers(venues)
 
-    # Contract-security pass (GoPlus, OAK-grounded): resolve EVM contracts and
-    # batch-fetch honeypot / tax / mint / authority / holder-concentration.
+    # Contract + market-structure pass: resolve EVM contracts, fetch GoPlus
+    # (honeypot/tax/mint/authority/holders) and DexScreener (liquidity/pair-age).
     contracts = _resolve_contracts(tickers, maps)
     secmap = _goplus_security(contracts)
+    dxmap = _dexscreener_markets(contracts)
     contract_scam = 0
 
     by_venue = {}
@@ -204,31 +243,78 @@ def run(venues=None) -> dict:
                 rec["status"] = "suspected"
                 contract_scam += 1
 
+        # Merge DexScreener market-structure signs (OAK T2).
+        dx = dxmap.get(sym)
+        if dx is not None:
+            dx_flags, dx_oak, dx_fields = dexscreener.liquidity_signs(dx, now_ms)
+            for fl in dx_flags:
+                if fl not in rec["flags"]:
+                    rec["flags"].append(fl)
+            for t in dx_oak:
+                if t not in rec["oak_techniques"]:
+                    rec["oak_techniques"].append(t)
+            rec["context"].update({k: v for k, v in dx_fields.items() if v is not None})
+
         records.append(rec)
 
-    # Rank by number of distinct signs first, then score — multi-sign tokens
-    # ("имеет признаки") rise to the top of the list.
     records.sort(key=lambda r: (len(r["flags"]), r["score"], r["confidence"]), reverse=True)
     suspected = sum(1 for r in records if r["status"] == "suspected")
-    flag_counts = {}
+
+    # --- Consolidate per TOKEN (one row per coin, signs unioned across venues) ---
+    # "Привести в чувство": the list is by token, not by 3.8k markets.
+    by_token = {}
     for r in records:
+        sym = r["symbol"]
+        t = by_token.get(sym)
+        if t is None:
+            t = by_token[sym] = {
+                "symbol": sym, "venues": [], "score": 0, "status": "watchlist",
+                "flags": [], "oak_techniques": [], "context": {},
+                "evidence": r.get("evidence", []),
+            }
+        if r["venue"] not in t["venues"]:
+            t["venues"].append(r["venue"])
+        t["score"] = max(t["score"], r["score"])
+        if r["status"] == "suspected":
+            t["status"] = "suspected"
         for fl in r["flags"]:
+            if fl not in t["flags"]:
+                t["flags"].append(fl)
+        for o in r["oak_techniques"]:
+            if o not in t["oak_techniques"]:
+                t["oak_techniques"].append(o)
+        for k, v in (r.get("context") or {}).items():
+            if v is not None and k not in t["context"]:
+                t["context"][k] = v
+    token_list = sorted(by_token.values(),
+                        key=lambda t: (len(t["flags"]), t["score"], len(t["venues"])),
+                        reverse=True)
+
+    # Flag tally is per TOKEN (so a coin on 5 venues counts once).
+    flag_counts = {}
+    for t in token_list:
+        for fl in t["flags"]:
             flag_counts[fl] = flag_counts.get(fl, 0) + 1
-    multi_sign = sum(1 for r in records if len(r["flags"]) >= 2)
+    multi_sign = sum(1 for t in token_list if len(t["flags"]) >= 2)
+    suspected_tokens = sum(1 for t in token_list if t["status"] == "suspected")
 
     dataset = {
-        "schema": "mgterminal.crime-coins/v0.4-goplus",
+        "schema": "mgterminal.crime-coins/v0.5-bytoken",
         "disclaimer": "Automated manipulation-risk heuristic. 'suspected' is an "
                       "unverified machine signal, not an accusation. See README.",
         "generated_at": now,
         "venues": by_venue,
         "count": len(records),
+        "token_count": len(token_list),
         "enriched": enriched,
         "contract_checked": len(secmap),
+        "dex_checked": len(dxmap),
         "contract_scam": contract_scam,
         "suspected": suspected,
+        "suspected_tokens": suspected_tokens,
         "multi_sign": multi_sign,
         "flag_counts": flag_counts,
+        "by_token": token_list,
         "tokens": records,
     }
 
@@ -244,28 +330,31 @@ def run(venues=None) -> dict:
 
     os.makedirs(os.path.dirname(HIST), exist_ok=True)
     with open(HIST, "a", encoding="utf-8") as f:
-        f.write(json.dumps({"t": now, "count": len(records), "suspected": suspected,
-                            "multi_sign": multi_sign, "contract_scam": contract_scam,
-                            "flag_counts": flag_counts, "venues": by_venue}) + "\n")
+        f.write(json.dumps({"t": now, "count": len(records),
+                            "token_count": len(token_list),
+                            "suspected_tokens": suspected_tokens, "multi_sign": multi_sign,
+                            "contract_scam": contract_scam, "flag_counts": flag_counts,
+                            "venues": by_venue}) + "\n")
 
     return dataset
 
 
 def main() -> int:
     ds = run()
-    print(f"swept {ds['count']} markets across {len(ds['venues'])} venues "
-          f"@ {ds['generated_at']}  ({ds.get('enriched', 0)} enriched, "
-          f"{ds.get('contract_checked', 0)} contracts checked)")
-    print(f"  suspected: {ds['suspected']}   multi-sign (>=2 flags): {ds['multi_sign']}   "
-          f"contract-scam (honeypot): {ds.get('contract_scam', 0)}")
-    print("  flags:", ", ".join(f"{k}={v}" for k, v in sorted(ds["flag_counts"].items())) or "none")
+    print(f"swept {ds['count']} markets -> {ds['token_count']} tokens across "
+          f"{len(ds['venues'])} venues @ {ds['generated_at']}")
+    print(f"  enriched {ds.get('enriched',0)} | GoPlus {ds.get('contract_checked',0)} | "
+          f"DexScreener {ds.get('dex_checked',0)}")
+    print(f"  suspected tokens: {ds['suspected_tokens']}   multi-sign (>=2): {ds['multi_sign']}   "
+          f"honeypot: {ds.get('contract_scam', 0)}")
+    print("  flags (per token):", ", ".join(f"{k}={v}" for k, v in sorted(ds["flag_counts"].items())) or "none")
     print()
-    print(f"{'SYMBOL':<13}{'VENUE':<11}{'SCORE':>5}  {'STATUS':<10}{'FLAGS'}")
-    print("-" * 78)
-    for r in ds["tokens"][:30]:
-        flags = ",".join(r.get("flags", [])) or "-"
-        print(f"{r['symbol']:<13}{r['venue']:<11}{r['score']:>5}  "
-              f"{r['status']:<10}{flags}")
+    print(f"{'TOKEN':<13}{'VENUES':>7}{'SCORE':>6}  {'STATUS':<10}{'FLAGS'}")
+    print("-" * 90)
+    for t in ds["by_token"][:30]:
+        flags = ",".join(t.get("flags", [])) or "-"
+        print(f"{t['symbol']:<13}{len(t['venues']):>7}{t['score']:>6}  "
+              f"{t['status']:<10}{flags}")
     return 0
 
 
