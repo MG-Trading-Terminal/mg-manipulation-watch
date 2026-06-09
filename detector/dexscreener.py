@@ -64,6 +64,30 @@ def token_market(address: str, pacing: float = 0.4) -> dict:
     }
 
 
+def search(symbol: str, pacing: float = 0.3) -> dict:
+    """Find a token by ticker on any DEX. Returns the best (max-liquidity) pair whose
+    base symbol matches — {chain, contract, liq_usd, fdv, pair_created_ms} — or
+    {"_no_data": True} if NO on-chain pair exists (i.e. it's not a crypto token:
+    a tokenized stock / index / commodity). None on transient error (retry later)."""
+    d = _get(f"https://api.dexscreener.com/latest/dex/search?q={symbol}")
+    time.sleep(pacing)
+    if not isinstance(d, dict):
+        return None
+    up = symbol.upper()
+    pairs = [p for p in (d.get("pairs") or [])
+             if ((p.get("baseToken") or {}).get("symbol") or "").upper() == up]
+    if not pairs:
+        return {"_no_data": True}
+    best = max(pairs, key=lambda p: (p.get("liquidity") or {}).get("usd") or 0)
+    return {
+        "chain": best.get("chainId"),
+        "contract": (best.get("baseToken") or {}).get("address"),
+        "liq_usd": _f((best.get("liquidity") or {}).get("usd")),
+        "fdv": _f(best.get("fdv")),
+        "pair_created_ms": best.get("pairCreatedAt"),
+    }
+
+
 def liquidity_signs(market: dict, now_ms: float):
     """Return (flags, oak_techniques, fields) from a token_market dict."""
     if not market or market.get("_no_data"):

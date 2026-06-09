@@ -161,6 +161,30 @@ def hyperliquid() -> List[dict]:
     return out
 
 
+# MEXC labels non-crypto products with these conceptPlate zones (stocks, indices,
+# commodities, metals, oil, forex, pre-IPO). Venue-authoritative — no ticker guessing.
+_MEXC_TRADFI_ZONES = {
+    "mc-trade-zone-Stock", "mc-trade-zone-stockindex", "mc-trade-zone-koreanstocks",
+    "mc-trade-zone-Commodities", "mc-trade-zone-metals", "mc-trade-zone-metalsfutures",
+    "mc-trade-zone-OIL", "mc-trade-zone-Forex", "mc-trade-zone-tradfi",
+    "mc-trade-zone-preipo", "mc-trade-zone-PreMarket", "mc-trade-zone-aerospacedefense",
+    "mc-trade-zone-TechGiants", "mc-trade-zone-semiconductors", "mc-trade-zone-storagechips",
+}
+
+
+def mexc_tradfi() -> set:
+    """Base symbols MEXC itself classifies as tradfi (stock/index/commodity/forex)."""
+    d = _get("https://contract.mexc.com/api/v1/contract/detail")
+    out = set()
+    if isinstance(d, dict):
+        for c in d.get("data", []):
+            if set(c.get("conceptPlate") or []) & _MEXC_TRADFI_ZONES:
+                base = (c.get("symbol") or "").split("_")[0]
+                if base:
+                    out.add(base.upper())
+    return out
+
+
 ADAPTERS = {
     "binance": binance,
     "bybit": bybit,
