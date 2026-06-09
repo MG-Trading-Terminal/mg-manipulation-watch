@@ -1,0 +1,24 @@
+{
+  "name": "mgterminal-crime-coins",
+  "version": "0.6.0",
+  "description": "MG Terminal — manipulation-risk watchlist. Vite + React + TS, data generated from the detector.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "site:data": "node scripts/build-site-data.mjs",
+    "dev": "npm run site:data && vite --host 0.0.0.0",
+    "build": "npm run site:data && tsc --noEmit && vite build && node scripts/copy-static.mjs",
+    "preview": "vite preview --host 0.0.0.0"
+  },
+  "dependencies": {
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.10"
+  }
+}

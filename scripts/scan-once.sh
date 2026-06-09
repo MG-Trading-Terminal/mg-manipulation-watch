@@ -4,7 +4,7 @@
 # the launchd agent (and run-loop.sh) call.
 set -uo pipefail
 
-# launchd runs with a minimal PATH — make python3 findable.
+# launchd runs with a minimal PATH — make python3 / node / npm findable.
 export PATH="/usr/bin:/usr/local/bin:/opt/homebrew/bin:$PATH"
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -14,12 +14,13 @@ LOG="data/logs/scan.log"
 ts() { date -u +%FT%TZ; }
 
 echo "[$(ts)] scan start" >> "$LOG"
-if python3 -m detector.pipeline >> "$LOG" 2>&1; then
-  echo "[$(ts)] pipeline ok" >> "$LOG"
+if python3 -m detector.collect >> "$LOG" 2>&1; then
+  echo "[$(ts)] collect ok" >> "$LOG"
 else
-  echo "[$(ts)] pipeline FAILED (rc=$?)" >> "$LOG"
+  echo "[$(ts)] collect FAILED (rc=$?)" >> "$LOG"
 fi
-if python3 web/build.py >> "$LOG" 2>&1; then
+# Build the Vite/React site (regenerates generated.ts from the fresh JSON).
+if npm run build >> "$LOG" 2>&1; then
   echo "[$(ts)] build ok" >> "$LOG"
 else
   echo "[$(ts)] build FAILED (rc=$?)" >> "$LOG"

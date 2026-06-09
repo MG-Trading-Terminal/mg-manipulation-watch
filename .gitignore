@@ -4,8 +4,14 @@ __pycache__/
 .venv/
 .local-venv/
 
-# Generated site (rebuilt by CI from the JSON; not source)
+# Node / Vite
+node_modules/
+
+# Generated site (rebuilt by CI; not source)
 dist/
+
+# Generated data module (baked from data/candidates/index.json by build-site-data.mjs)
+src/data/generated.ts
 
 # Generated current snapshot (4MB+, regenerated each scan). The committed base
 # summary is data/history/_scans.jsonl; full snapshots are in data/snapshots/.

@@ -26,30 +26,39 @@ data/universe.json ─▶ detector/pipeline.py
                         ├─ sources.py   (live fetch: Binance, CoinGecko, DefiLlama)
                         └─ crime_score.py (PURE scoring — no I/O, the source of truth)
                               ▼
-                  data/candidates/index.json  (+ per-token json)   ← JSON is canonical
+                  data/candidates/index.json   ← JSON is the canonical output
                               ▼
-                        web/build.py  ─▶  dist/index.html + dist/data.json  (MG design)
+   scripts/build-site-data.mjs ─▶ src/data/generated.ts (baked, like OAK)
+                              ▼
+   Vite + React + TS  ─(npm run build)─▶  dist/ (index.html + hashed assets + data.json)
                               ▼
                   GitHub Action (every 4h) ─▶ commit data, deploy Pages → mgterminal.com
 ```
 
+## Frontend = Vite + React + TypeScript (same stack as OAK — NOT Python-generated HTML)
+Python emits ONLY JSON. The site is a real Vite/React/TS app:
+- `index.html` + `src/main.tsx` + `src/App.tsx` + `src/components/` + `src/styles.css`.
+- `src/types.ts` — typed `data` (from generated.ts). `src/lib.ts` — flag/OAK constants + helpers.
+- `scripts/build-site-data.mjs` — bakes `data/candidates/index.json` → `src/data/generated.ts`
+  (`export const siteData`), imported at build time (OAK's embed pattern; generated.ts gitignored).
+- `scripts/copy-static.mjs` — CNAME + a per-token `data.json` (public API) into dist/.
+- Build: `npm run build` = `site:data && tsc --noEmit && vite build && copy-static`.
+- **Do not reintroduce Python-side HTML templating.** UI lives in src/ (tsx + css).
+
 ## Layout
 - `detector/crime_score.py` — pure scorer. **All scoring logic goes here**, nowhere else.
-- `detector/sources.py` — best-effort free fetchers; one dead source must never kill a row.
-- `detector/pipeline.py` — the 4h batch: universe → fetch → score → JSON.
-- `detector/fixtures.py` — offline calibration snapshots (MYX/RAVE high, majors low).
-- `web/build.py` — static site generator (MeatGrinder design language).
-- `data/universe.json` — tokens to scan (add entries here).
-- `data/candidates/` — machine output (auto). `data/confirmed/` — human-gated (manual).
-- `tests/test_calibration.py` — regression test for the scorer.
+- `detector/collect.py` — PRIMARY 4h sweep: venues → enrich → GoPlus/DexScreener → per-token JSON.
+- `detector/{venues,enrich,goplus,dexscreener,sources}.py` — data adapters (best-effort).
+- `detector/fixtures.py` + `tests/test_calibration.py` — offline calibration (MYX/RAVE high, majors low).
+- `src/` — the React app. `data/universe.json` — scan universe. `data/confirmed/` — human-gated tier.
 
 ## Commands
 ```bash
 python3 -m tests.test_calibration   # MUST pass before any scorer change
 python3 -m detector.collect         # PRIMARY: market-wide multi-venue sweep -> index.json + snapshot
 python3 -m detector.build_universe  # rebuild data/universe.json from Binance perps
-python3 -m detector.pipeline        # curated deep scan (Binance + cg/defillama enrichment)
-python3 web/build.py                # regenerate dist/ from the JSON
+npm run build                       # site:data -> tsc -> vite build -> dist/  (the site)
+npm run dev                         # local Vite dev server
 python3 -m detector.scan SOL        # score one token from the universe, live
 ```
 

@@ -10,7 +10,7 @@ on:
     branches: [main]
     paths:
       - "detector/**"
-      - "web/**"
+      - "src/**"
       - "data/universe.json"
 
 permissions:
@@ -35,14 +35,21 @@ jobs:
         with:
           python-version: "3.11"
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install frontend deps
+        run: npm ci
+
       - name: Calibration gate (fail before publishing if the scorer regressed)
         run: python3 -m tests.test_calibration
 
-      - name: Scan universe -> JSON
-        run: python3 -m detector.pipeline
+      - name: Scan all venues -> JSON
+        run: python3 -m detector.collect
 
-      - name: Build static site
-        run: python3 web/build.py
+      - name: Build site (Vite/React/TS — bakes JSON into generated.ts)
+        run: npm run build
 
       - name: Commit refreshed data (versioned history for diffing / сверка)
         run: |
