@@ -30,7 +30,9 @@ CACHE = os.path.join(ROOT, "data", "enrich", "maps.json")
 _UA = {"User-Agent": "mgterminal-crime-scan/0.1 (+https://mgterminal.com)"}
 _TIMEOUT = 20
 # Binance/Bybit contract-size prefixes — strip so "1000PEPE" matches "PEPE".
-_PREFIX = re.compile(r"^(1000000|100000|10000|1000|1M|1MB|1B|1K|K)(?=[A-Z])")
+# NOTE: only real multiplier prefixes. A bare "K"/"1K"/"1B" would eat the first
+# letter of legit tickers (KAS->AS, KSM->SM, KAITO->AITO) — never include them.
+_PREFIX = re.compile(r"^(1000000|100000|10000|1000|1M|1MB)(?=[A-Z])")
 
 # Optional free CoinGecko Demo API key (env) — the clean way past the rate limit.
 CG_KEY = os.environ.get("COINGECKO_API_KEY")
