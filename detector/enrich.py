@@ -60,9 +60,18 @@ def _coingecko_markets(pages: int) -> Dict[str, dict]:
     for page in range(1, pages + 1):
         url = ("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd"
                f"&order=market_cap_desc&per_page=250&page={page}")
-        data = _get(url)
-        if not isinstance(data, list) or not data:
-            break
+        # Retry a rate-limited page rather than breaking the whole pagination
+        # (a single 429 must not truncate the universe to a few hundred coins).
+        data = None
+        for attempt in range(3):
+            data = _get(url)
+            if isinstance(data, list):
+                break
+            time.sleep(5)
+        if not isinstance(data, list):
+            continue          # skip this page, keep going
+        if not data:
+            break             # genuinely past the last page
         for c in data:
             s = (c.get("symbol") or "").upper()
             mc = _f(c.get("market_cap"))
@@ -70,8 +79,35 @@ def _coingecko_markets(pages: int) -> Dict[str, dict]:
                 continue
             if s not in out or mc > out[s]["mc"]:
                 out[s] = {"mc": mc, "vol": _f(c.get("total_volume")),
-                          "fdv": _f(c.get("fully_diluted_valuation"))}
+                          "fdv": _f(c.get("fully_diluted_valuation")),
+                          "id": c.get("id")}
         time.sleep(2.5)  # free-tier pacing (python sleep, not the shell)
+    return out
+
+
+def _coingecko_platforms() -> Dict[str, dict]:
+    """id -> {platform: contract_address} for the whole market (one big call).
+
+    ~10MB payload — needs a long timeout, and must run BEFORE the paginated
+    markets calls or it gets rate-limited. Retries a few times.
+    """
+    url = "https://api.coingecko.com/api/v3/coins/list?include_platform=true"
+    out = {}
+    for attempt in range(4):
+        try:
+            req = urllib.request.Request(url, headers=_UA)
+            with urllib.request.urlopen(req, timeout=90) as r:
+                data = json.loads(r.read().decode("utf-8"))
+            if isinstance(data, list):
+                for c in data:
+                    pf = {k: v for k, v in (c.get("platforms") or {}).items() if v}
+                    if pf and c.get("id"):
+                        out[c["id"]] = pf
+                if out:
+                    return out
+        except Exception:
+            pass
+        time.sleep(6)
     return out
 
 
@@ -109,14 +145,25 @@ def _defillama() -> Dict[str, dict]:
 
 
 def build(pages: int = 16) -> dict:
+    platforms = _coingecko_platforms()   # big call first (before pagination throttles)
     cg = _coingecko_markets(pages)
     dl = _defillama()
-    maps = {"cg": cg, "dl": dl,
-            "stats": {"cg_symbols": len(cg), "dl_symbols": len(dl)}}
+    maps = {"cg": cg, "dl": dl, "platforms": platforms,
+            "stats": {"cg_symbols": len(cg), "dl_symbols": len(dl),
+                      "platform_ids": len(platforms)}}
     os.makedirs(os.path.dirname(CACHE), exist_ok=True)
     with open(CACHE, "w", encoding="utf-8") as f:
         json.dump(maps, f)
     return maps
+
+
+def contract_platforms(base_symbol: str, maps: dict):
+    """{platform: address} for a perp base symbol, via its CoinGecko id."""
+    cg = maps.get("cg", {}).get(norm_symbol(base_symbol))
+    cid = (cg or {}).get("id")
+    if not cid:
+        return None
+    return maps.get("platforms", {}).get(cid)
 
 
 def load(rebuild_if_missing: bool = True) -> dict:
@@ -167,8 +214,10 @@ def lookup(base_symbol: str, maps: dict):
 
 def main(argv) -> int:
     maps = build()
-    print(f"enrichment cache built: {maps['stats']['cg_symbols']} CoinGecko symbols, "
-          f"{maps['stats']['dl_symbols']} DefiLlama symbols -> {CACHE}")
+    s = maps["stats"]
+    print(f"enrichment cache built: {s['cg_symbols']} CoinGecko symbols, "
+          f"{s['dl_symbols']} DefiLlama symbols, {s.get('platform_ids', 0)} contract-platform ids "
+          f"-> {CACHE}")
     return 0
 
 

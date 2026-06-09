@@ -26,12 +26,79 @@ from typing import List
 
 from .crime_score import score, Signals
 from .venues import all_tickers, ADAPTERS
-from . import enrich
+from . import enrich, goplus
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT_DIR = os.path.join(ROOT, "data", "candidates")
 SNAP_DIR = os.path.join(ROOT, "data", "snapshots")
 HIST = os.path.join(ROOT, "data", "history", "_scans.jsonl")
+GP_CACHE = os.path.join(ROOT, "data", "enrich", "goplus.json")
+
+
+def _load_goplus_cache() -> dict:
+    if os.path.exists(GP_CACHE):
+        try:
+            with open(GP_CACHE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return {}
+    return {}
+
+
+def _save_goplus_cache(cache: dict) -> None:
+    os.makedirs(os.path.dirname(GP_CACHE), exist_ok=True)
+    with open(GP_CACHE, "w", encoding="utf-8") as f:
+        json.dump(cache, f)
+
+
+def _resolve_contracts(tickers, maps):
+    """base_symbol -> (chain_id, address) for tokens with a GoPlus-supported chain."""
+    out = {}
+    for tk in tickers:
+        sym = tk["symbol"]
+        if sym in out:
+            continue
+        pf = enrich.contract_platforms(sym, maps)
+        out[sym] = None
+        if not pf:
+            continue
+        for plat, addr in pf.items():
+            cid = goplus.CG_PLATFORM_TO_CHAIN.get(plat)
+            if cid and addr:
+                out[sym] = (cid, addr.lower())
+                break
+    return out
+
+
+def _goplus_security(contracts, max_fetch=500):
+    """Resolve {symbol: (chain,addr)} -> {symbol: security}, cached across runs."""
+    cache = _load_goplus_cache()
+    want = {}                       # chain -> set(addr) we still need
+    for sym, ca in contracts.items():
+        if not ca:
+            continue
+        key = f"{ca[0]}:{ca[1]}"
+        if key not in cache:
+            want.setdefault(ca[0], set()).add(ca[1])
+    fetched = 0
+    for cid, addrs in want.items():
+        addrs = list(addrs)
+        if fetched >= max_fetch:
+            break
+        addrs = addrs[:max_fetch - fetched]
+        res = goplus.token_security(cid, addrs)
+        for a, v in res.items():
+            cache[f"{cid}:{a}"] = v
+        fetched += len(addrs)
+    if fetched:
+        _save_goplus_cache(cache)
+    secmap = {}
+    for sym, ca in contracts.items():
+        if ca:
+            sec = cache.get(f"{ca[0]}:{ca[1]}")
+            if sec:
+                secmap[sym] = sec
+    return secmap
 
 
 def _signals(tk: dict, maps: dict):
@@ -88,25 +155,55 @@ def run(venues=None) -> dict:
 
     maps = enrich.load()  # bulk MC/TVL/fees maps (cached) -> full signal set
     tickers = all_tickers(venues)
+
+    # Contract-security pass (GoPlus, OAK-grounded): resolve EVM contracts and
+    # batch-fetch honeypot / tax / mint / authority / holder-concentration.
+    contracts = _resolve_contracts(tickers, maps)
+    secmap = _goplus_security(contracts)
+    contract_scam = 0
+
     by_venue = {}
     enriched = 0
     records: List[dict] = []
     for tk in tickers:
         by_venue[tk["venue"]] = by_venue.get(tk["venue"], 0) + 1
+        sym = tk["symbol"]
         sig, ctx = _signals(tk, maps)
         if sig.market_cap_usd is not None:
             enriched += 1
-        a = score(tk["symbol"], sig)
+        a = score(sym, sig)
         rec = a.to_record()
-        rec["symbol"] = tk["symbol"]
+        rec["symbol"] = sym
         rec["venue"] = tk["venue"]
         rec["market"] = tk["market"]
         rec["context"] = ctx
         rec["last_checked"] = now
         rec["evidence"] = [
-            {"label": "Coinglass", "url": f"https://www.coinglass.com/currencies/{tk['symbol']}"},
+            {"label": "Coinglass", "url": f"https://www.coinglass.com/currencies/{sym}"},
         ]
         rec["flags"] = _flags(rec, ctx)
+
+        # Merge GoPlus contract-security signs (OAK T1/T3).
+        sec = secmap.get(sym)
+        if sec is not None:
+            gp_flags, gp_oak, gp_fields = goplus.flags_from_security(sec)
+            for fl in gp_flags:
+                if fl not in rec["flags"]:
+                    rec["flags"].append(fl)
+            for t in gp_oak:
+                if t not in rec["oak_techniques"]:
+                    rec["oak_techniques"].append(t)
+            rec["context"].update({k: v for k, v in gp_fields.items() if v is not None})
+            ca = contracts.get(sym)
+            if ca:
+                rec["context"]["chain"] = ca[0]
+                rec["context"]["contract"] = ca[1]
+            # Honeypot / can't-sell is a definitive scam contract (T1.006) — force
+            # suspected regardless of the market score. The human tier confirms.
+            if "honeypot" in gp_flags:
+                rec["status"] = "suspected"
+                contract_scam += 1
+
         records.append(rec)
 
     # Rank by number of distinct signs first, then score — multi-sign tokens
@@ -120,13 +217,15 @@ def run(venues=None) -> dict:
     multi_sign = sum(1 for r in records if len(r["flags"]) >= 2)
 
     dataset = {
-        "schema": "mgterminal.crime-coins/v0.3-flags",
+        "schema": "mgterminal.crime-coins/v0.4-goplus",
         "disclaimer": "Automated manipulation-risk heuristic. 'suspected' is an "
                       "unverified machine signal, not an accusation. See README.",
         "generated_at": now,
         "venues": by_venue,
         "count": len(records),
         "enriched": enriched,
+        "contract_checked": len(secmap),
+        "contract_scam": contract_scam,
         "suspected": suspected,
         "multi_sign": multi_sign,
         "flag_counts": flag_counts,
@@ -146,8 +245,8 @@ def run(venues=None) -> dict:
     os.makedirs(os.path.dirname(HIST), exist_ok=True)
     with open(HIST, "a", encoding="utf-8") as f:
         f.write(json.dumps({"t": now, "count": len(records), "suspected": suspected,
-                            "multi_sign": multi_sign, "flag_counts": flag_counts,
-                            "venues": by_venue}) + "\n")
+                            "multi_sign": multi_sign, "contract_scam": contract_scam,
+                            "flag_counts": flag_counts, "venues": by_venue}) + "\n")
 
     return dataset
 
@@ -155,9 +254,10 @@ def run(venues=None) -> dict:
 def main() -> int:
     ds = run()
     print(f"swept {ds['count']} markets across {len(ds['venues'])} venues "
-          f"@ {ds['generated_at']}  ({ds.get('enriched', 0)} enriched)")
-    print(f"  suspected (active squeeze): {ds['suspected']}   "
-          f"multi-sign (>=2 flags): {ds['multi_sign']}")
+          f"@ {ds['generated_at']}  ({ds.get('enriched', 0)} enriched, "
+          f"{ds.get('contract_checked', 0)} contracts checked)")
+    print(f"  suspected: {ds['suspected']}   multi-sign (>=2 flags): {ds['multi_sign']}   "
+          f"contract-scam (honeypot): {ds.get('contract_scam', 0)}")
     print("  flags:", ", ".join(f"{k}={v}" for k, v in sorted(ds["flag_counts"].items())) or "none")
     print()
     print(f"{'SYMBOL':<13}{'VENUE':<11}{'SCORE':>5}  {'STATUS':<10}{'FLAGS'}")

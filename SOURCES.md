@@ -4,6 +4,42 @@ Each row of the watchlist is assembled from independent public feeds. The table
 below is the catalog: what each source provides, which signal it feeds, whether it
 needs a key, and its known limits. **All sources are free, no-key.**
 
+Detection is **grounded in the OAK taxonomy** (`/Users/dlchistyakov/Projects/oak`):
+each sign maps to an OAK technique, and the thresholds come from OAK's detection
+specs — e.g. honeypot = OAK-T1.006 (sell-tax ≥ 0.99 ≈ a revert; "legitimate-use
+overlap is structurally null"), holder concentration = OAK-T3.006 (>95% team
+control), tax = OAK-T1.001/005, mint/authority = OAK-T1.003/004. OAK's specs also
+name the reference detectors we use (GoPlus, Honeypot.is, RugCheck, Bubblemaps).
+
+## Sign flags → OAK technique
+| flag | meaning | source | OAK |
+|---|---|---|---|
+| `squeeze` | deeply negative funding (shorts bleeding) | perp venues | T17.002 |
+| `oi-dominance` | perp OI large vs float | perp venues + MC | T17.002 |
+| `mc/tvl-disconnect` | MC ≫ TVL (context, not auto-scored) | DefiLlama + CG | T17.001 |
+| `ps-disconnect` | MC ≫ revenue (context) | DefiLlama + CG | T17.001 |
+| `low-float` | circulating < 30% of FDV | CoinGecko | T3 |
+| `honeypot` | can't-sell / sell-tax ≥ 99% | GoPlus | T1.006 |
+| `high-tax` | extractive sell tax ≥ 10% | GoPlus | T1.001/005 |
+| `mintable` | supply can be minted | GoPlus | T1.003 |
+| `owner-control` | pausable / hidden-owner / balance-rewrite | GoPlus | T1.004 |
+| `holder-concentration` | top non-LP holders ≥ 70% (or <50 holders) | GoPlus | T3.006 |
+| `closed-source` | unverified contract (opacity) | GoPlus | — |
+
+`honeypot` forces `suspected` (definitive scam contract); the rest accumulate as
+signs (`multi_sign` = ≥2). Fundamental ratios stay context-only (they FP on legit
+L1s). The human-gated `confirmed/` tier is where "scam" is asserted.
+
+## Contract security (`detector.goplus`, free)
+GoPlus `token_security/{chain_id}` gives honeypot, buy/sell tax, mintable,
+pausable, hidden-owner, balance-rewrite, holder list (% + locked + LP tag),
+holder_count, open-source. Symbol→contract resolved via CoinGecko
+`coins/list?include_platform` (one ~10MB call, 16.5k coins). **Queried ONE address
+at a time** — GoPlus's multi-address batch only returns pre-analyzed tokens
+(≈1/20 cold), so per-address is the only reliable path; results are cached
+(`data/enrich/goplus.json`) so 4h runs only fetch new contracts. EVM chains only
+in v1 (Solana memecoin tail needs the GoPlus-Solana / RugCheck endpoint — v2).
+
 ## Perp venues — the market-wide sweep (`detector.collect`)
 Crime coins are not mostly on Binance; the long tail lives on the smaller venues.
 Each venue exposes ONE bulk endpoint with funding + OI + volume for every perp, so

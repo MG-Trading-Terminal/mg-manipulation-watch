@@ -105,9 +105,13 @@ def _evidence(links) -> str:
 
 _FLAG_STYLE = {"squeeze": "fl-red", "oi-dominance": "fl-amber",
                "mc/tvl-disconnect": "fl-info", "ps-disconnect": "fl-info",
-               "low-float": "fl-amber"}
+               "low-float": "fl-amber", "honeypot": "fl-red", "high-tax": "fl-red",
+               "mintable": "fl-amber", "owner-control": "fl-amber",
+               "closed-source": "fl-info", "holder-concentration": "fl-amber"}
 _FLAG_LABEL = {"squeeze": "SQUEEZE", "oi-dominance": "OI", "mc/tvl-disconnect": "MC/TVL",
-               "ps-disconnect": "P/S", "low-float": "LOW-FLOAT"}
+               "ps-disconnect": "P/S", "low-float": "LOW-FLOAT", "honeypot": "HONEYPOT",
+               "high-tax": "HIGH-TAX", "mintable": "MINTABLE", "owner-control": "OWNER-CTRL",
+               "closed-source": "CLOSED-SRC", "holder-concentration": "HOLDERS"}
 
 
 def _flag_chips(flags, ctx) -> str:

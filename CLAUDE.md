@@ -53,18 +53,32 @@ python3 web/build.py                # regenerate dist/ from the JSON
 python3 -m detector.scan SOL        # score one token from the universe, live
 ```
 
-## Two scanners (same engine)
-- **`detector.collect` (primary, broad):** one bulk call per venue
-  (Binance/Bybit/Bitget/Gate/MEXC/Hyperliquid) → ~3.8k perp markets, fast. Only
-  funding + OI available market-wide, and OI floods without a real float, so the
-  **breadth ranking is funding-driven** (deeply negative funding = the squeeze
-  tell). Everything stays `watchlist` — earning `suspected` needs enrichment.
-  Writes `data/candidates/index.json` + immutable `data/snapshots/<ts>.json` (base).
-- **`detector.pipeline` (curated, deep):** Binance + CoinGecko/DefiLlama enrichment
-  (MC/TVL, P/S) for the handful in `universe.json` that have `cg_id`/`defillama_slug`
-  → 2+ signals → can reach `suspected`. Per-symbol history in `data/history/`.
-- MEXC OI is omitted (its `holdVol` is in contracts, not USD — it inflated
-  BTC/stocks to max). OI is still collected for later OI/MC scoring.
+## How a token is classified — OAK-grounded sign flags
+`detector.collect` sweeps ~3.8k perp markets (6 venues), enriches each, and tags it
+with **sign flags**, every flag mapped to an OAK technique (see SOURCES.md table):
+- **mechanics** (auto-scored): `squeeze` (neg funding, T17.002), `oi-dominance`.
+- **contract** (GoPlus, OAK T1/T3): `honeypot`, `high-tax`, `mintable`,
+  `owner-control`, `holder-concentration`, `closed-source`.
+- **fundamental** (CONTEXT only — fuzzy ratios FP on legit L1s, so NOT auto-scored):
+  `mc/tvl-disconnect`, `ps-disconnect`, `low-float`.
+
+Status: `honeypot` → `suspected` (definitive scam contract). Else `suspected` =
+squeeze mechanics score ≥ 50. `multi_sign` = ≥2 flags ("имеет признаки"). The
+human-gated `confirmed/` tier is the only place "scam"/"likely"/"cleared" is asserted.
+
+**Hard FP-discipline (learned over 4 iterations):** MC/TVL & P/S describe half the
+market (every L1/governance token) — they must NEVER auto-condemn. They are shown
+as context flags only. Reliable auto signals = squeeze (funding) + GoPlus contract
+facts (honeypot/mint/tax/holders). MEXC OI is omitted (holdVol = contracts, not USD).
+
+## Enrichment + contract pass
+- `detector.enrich` — bulk MC/TVL/fees/FDV maps + CoinGecko `coins/list` contract
+  platforms (cached `data/enrich/maps.json`). Run after universe changes.
+- `detector.goplus` — per-address contract security, cached `data/enrich/goplus.json`
+  (GoPlus batch is unreliable; per-address + cache is the path). 4h runs only fetch
+  NEW contracts (budget `max_fetch`). EVM only in v1; Solana tail = v2.
+- `detector.pipeline` — curated deep scan where `mc/tvl`/`ps` ARE auto-scored
+  (hand-verified `defillama_slug` only). Per-symbol history in `data/history/`.
 
 ## Local operation (no repo / no cloud — the current mode)
 The system runs fully locally and accumulates an append-only base under
