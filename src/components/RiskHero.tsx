@@ -16,6 +16,11 @@ export function RiskHero({ token }: { token: Token }) {
           <span className="rh-sym mono">{token.symbol}</span>
           {token.profile?.name && <span className="rh-name">{token.profile.name}</span>}
           <StatusChip status={token.status} />
+          {!token.human_reviewed && (
+            <span className="fl fl-info" title="Automated heuristic — not a human verdict, not an accusation">
+              AUTO · UNVERIFIED
+            </span>
+          )}
           {token.liveness && LIVENESS[token.liveness] && (
             <span className={`fl ${LIVENESS[token.liveness].cls}`}>{LIVENESS[token.liveness].label}</span>
           )}

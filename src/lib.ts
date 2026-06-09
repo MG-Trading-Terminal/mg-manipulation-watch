@@ -66,7 +66,7 @@ export const FLAG_DESCRIPTION: Record<string, string> = {
   "low-float": "Most supply isn't circulating yet — unlocks can flood the market.",
   collapsed: "Ever fell ≥90% peak-to-trough — a realized dump.",
   dead: "Effectively no trading volume — abandoned.",
-  "pump-dump": "Ran up 3x+ then crashed 80%+ and never recovered — the classic rug shape.",
+  "pump-dump": "Ran up 3x+ then crashed 80%+ and never recovered — the pump-and-dump price shape.",
 };
 
 export function fmtUsd(n?: number | null): string {
@@ -158,10 +158,10 @@ export function scoreClass(s: number): string {
 export function riskLevel(flags: string[], status: string): { label: string; tone: "red" | "amber" | "green"; blurb: string } {
   if (status === "confirmed") return { label: "CONFIRMED SCAM", tone: "red", blurb: "Human-reviewed — stays flagged." };
   if (status === "cleared") return { label: "CLEARED", tone: "green", blurb: "Reviewed — false positive." };
-  if (flags.includes("honeypot")) return { label: "HOSTILE CONTRACT", tone: "red", blurb: "Selling may be blocked — do not enter." };
-  if (status === "suspected") return { label: "HIGH RISK", tone: "red", blurb: "Suspected active manipulation." };
-  if (flags.length >= 3) return { label: "ELEVATED RISK", tone: "amber", blurb: `${flags.length} risk signs present.` };
-  if (flags.length >= 1) return { label: "CAUTION", tone: "amber", blurb: `${flags.length} risk sign${flags.length > 1 ? "s" : ""} present.` };
+  if (flags.includes("honeypot")) return { label: "HOSTILE CONTRACT", tone: "red", blurb: "Contract may block selling — verify before any trade." };
+  if (status === "suspected") return { label: "HIGH RISK", tone: "red", blurb: "Matches the manipulation-risk pattern — automated, unverified." };
+  if (flags.length >= 3) return { label: "ELEVATED RISK", tone: "amber", blurb: `${flags.length} risk signs — automated, unverified.` };
+  if (flags.length >= 1) return { label: "CAUTION", tone: "amber", blurb: `${flags.length} risk sign${flags.length > 1 ? "s" : ""} present — automated.` };
   return { label: "NO SIGNS", tone: "green", blurb: "Clean in this scan — still DYOR." };
 }
 
