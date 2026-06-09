@@ -1,0 +1,52 @@
+{
+  "attribution": "unattributed",
+  "available_signals": [
+    "funding",
+    "oi_dominance"
+  ],
+  "confidence": 0.4,
+  "evidence": [
+    {
+      "label": "Coinglass funding/OI",
+      "url": "https://www.coinglass.com/currencies/JUP"
+    },
+    {
+      "label": "CoinGecko",
+      "url": "https://www.coingecko.com/en/coins/jupiter-exchange-solana"
+    },
+    {
+      "label": "DefiLlama TVL",
+      "url": "https://defillama.com/protocol/jupiter-aggregator"
+    }
+  ],
+  "last_checked": "2026-06-09T06:56:02+00:00",
+  "missing_signals": [
+    "mc_tvl",
+    "ps_ratio",
+    "supply_conc",
+    "wash_volume"
+  ],
+  "note": "Alleged market-manipulation pattern; automated heuristic, not a determination of wrongdoing.",
+  "oak_techniques": [],
+  "reviewer": null,
+  "score": 4,
+  "signals": {
+    "funding": 0.0,
+    "mc_tvl": null,
+    "oi_dominance": 0.085,
+    "ps_ratio": null,
+    "supply_conc": null,
+    "wash_volume": null
+  },
+  "status": "watchlist",
+  "symbol": "JUP",
+  "token": "JUP",
+  "values": {
+    "funding": -0.00153162,
+    "mc_tvl": null,
+    "oi_dominance": 0.7125824351889672,
+    "ps_ratio": null,
+    "supply_conc": null,
+    "wash_volume": null
+  }
+}

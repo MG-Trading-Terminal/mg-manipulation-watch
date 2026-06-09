@@ -1,0 +1,52 @@
+{
+  "attribution": "unattributed",
+  "available_signals": [
+    "mc_tvl",
+    "funding",
+    "oi_dominance",
+    "ps_ratio"
+  ],
+  "confidence": 0.8,
+  "evidence": [
+    {
+      "label": "Coinglass funding/OI",
+      "url": "https://www.coinglass.com/currencies/AAVE"
+    },
+    {
+      "label": "CoinGecko",
+      "url": "https://www.coingecko.com/en/coins/aave"
+    },
+    {
+      "label": "DefiLlama TVL",
+      "url": "https://defillama.com/protocol/aave"
+    }
+  ],
+  "last_checked": "2026-06-09T06:56:02+00:00",
+  "missing_signals": [
+    "supply_conc",
+    "wash_volume"
+  ],
+  "note": "Alleged market-manipulation pattern; automated heuristic, not a determination of wrongdoing.",
+  "oak_techniques": [],
+  "reviewer": null,
+  "score": 0,
+  "signals": {
+    "funding": 0.0,
+    "mc_tvl": 0.0,
+    "oi_dominance": 0.0,
+    "ps_ratio": 0.0,
+    "supply_conc": null,
+    "wash_volume": null
+  },
+  "status": "watchlist",
+  "symbol": "AAVE",
+  "token": "AAVE",
+  "values": {
+    "funding": -0.00025347,
+    "mc_tvl": 0.07662732776326014,
+    "oi_dominance": 0.042331769765301994,
+    "ps_ratio": 2.723382012014698,
+    "supply_conc": null,
+    "wash_volume": null
+  }
+}

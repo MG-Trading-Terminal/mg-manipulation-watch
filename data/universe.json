@@ -1,0 +1,12 @@
+{
+  "_comment": "Tokens to scan each cycle. Add entries here; the 4h pipeline scores them all. binance_symbol = USD-M perp; cg_id = CoinGecko id; defillama_slug = protocol slug (omit for non-protocol tokens). top_holders_pct / wash_volume_flag are optional manual (keyed) inputs until a fetcher exists.",
+  "tokens": [
+    { "symbol": "BTC",  "binance_symbol": "BTCUSDT",  "cg_id": "bitcoin" },
+    { "symbol": "ETH",  "binance_symbol": "ETHUSDT",  "cg_id": "ethereum" },
+    { "symbol": "SOL",  "binance_symbol": "SOLUSDT",  "cg_id": "solana" },
+    { "symbol": "AAVE", "binance_symbol": "AAVEUSDT", "cg_id": "aave",    "defillama_slug": "aave" },
+    { "symbol": "ENA",  "binance_symbol": "ENAUSDT",  "cg_id": "ethena",  "defillama_slug": "ethena" },
+    { "symbol": "PENDLE","binance_symbol": "PENDLEUSDT","cg_id": "pendle","defillama_slug": "pendle" },
+    { "symbol": "JUP",  "binance_symbol": "JUPUSDT",  "cg_id": "jupiter-exchange-solana", "defillama_slug": "jupiter-aggregator" }
+  ]
+}

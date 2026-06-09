@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.local-venv/
+
+# Generated site (rebuilt by CI from the JSON; not source)
+dist/
+
+# OS / editor
+.DS_Store
+*.swp
+
+# Design handoff reference (large; not shipped). Comment out to version it.
+_design-ref/

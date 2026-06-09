@@ -1,0 +1,66 @@
+name: crime-scan
+
+# Every 4 hours: refresh the watchlist data, gate on the calibration test,
+# version the data in git, then build + deploy the site to Pages (mgterminal.com).
+on:
+  schedule:
+    - cron: "0 */4 * * *"
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths:
+      - "detector/**"
+      - "web/**"
+      - "data/universe.json"
+
+permissions:
+  contents: write     # commit refreshed data
+  pages: write        # deploy Pages
+  id-token: write     # Pages deploy auth
+
+concurrency:
+  group: crime-scan
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Calibration gate (fail before publishing if the scorer regressed)
+        run: python3 -m tests.test_calibration
+
+      - name: Scan universe -> JSON
+        run: python3 -m detector.pipeline
+
+      - name: Build static site
+        run: python3 web/build.py
+
+      - name: Commit refreshed data (versioned history for diffing / сверка)
+        run: |
+          git config user.name "mg-terminal-bot"
+          git config user.email "bot@mgterminal.com"
+          git add data/candidates
+          if git diff --cached --quiet; then
+            echo "no data changes"
+          else
+            git commit -m "chore(scan): refresh manipulation watch $(date -u +%FT%TZ)"
+            git push
+          fi
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - id: deploy
+        uses: actions/deploy-pages@v4

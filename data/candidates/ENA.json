@@ -1,0 +1,54 @@
+{
+  "attribution": "unattributed",
+  "available_signals": [
+    "mc_tvl",
+    "funding",
+    "oi_dominance",
+    "ps_ratio"
+  ],
+  "confidence": 0.8,
+  "evidence": [
+    {
+      "label": "Coinglass funding/OI",
+      "url": "https://www.coinglass.com/currencies/ENA"
+    },
+    {
+      "label": "CoinGecko",
+      "url": "https://www.coingecko.com/en/coins/ethena"
+    },
+    {
+      "label": "DefiLlama TVL",
+      "url": "https://defillama.com/protocol/ethena"
+    }
+  ],
+  "last_checked": "2026-06-09T06:56:02+00:00",
+  "missing_signals": [
+    "supply_conc",
+    "wash_volume"
+  ],
+  "note": "Alleged market-manipulation pattern; automated heuristic, not a determination of wrongdoing.",
+  "oak_techniques": [
+    "OAK-T17.001"
+  ],
+  "reviewer": null,
+  "score": 20,
+  "signals": {
+    "funding": 0.0,
+    "mc_tvl": 0.0,
+    "oi_dominance": 0.0,
+    "ps_ratio": 1.0,
+    "supply_conc": null,
+    "wash_volume": null
+  },
+  "status": "watchlist",
+  "symbol": "ENA",
+  "token": "ENA",
+  "values": {
+    "funding": -0.0016235400000000001,
+    "mc_tvl": 0.15335080863598252,
+    "oi_dominance": 0.0576000741804914,
+    "ps_ratio": 3398.168945295013,
+    "supply_conc": null,
+    "wash_volume": null
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "attribution": "unattributed",
+  "available_signals": [
+    "funding",
+    "oi_dominance"
+  ],
+  "confidence": 0.4,
+  "evidence": [
+    {
+      "label": "Coinglass funding/OI",
+      "url": "https://www.coinglass.com/currencies/PENDLE"
+    },
+    {
+      "label": "CoinGecko",
+      "url": "https://www.coingecko.com/en/coins/pendle"
+    },
+    {
+      "label": "DefiLlama TVL",
+      "url": "https://defillama.com/protocol/pendle"
+    }
+  ],
+  "last_checked": "2026-06-09T06:56:02+00:00",
+  "missing_signals": [
+    "mc_tvl",
+    "ps_ratio",
+    "supply_conc",
+    "wash_volume"
+  ],
+  "note": "Alleged market-manipulation pattern; automated heuristic, not a determination of wrongdoing.",
+  "oak_techniques": [],
+  "reviewer": null,
+  "score": 8,
+  "signals": {
+    "funding": 0.0,
+    "mc_tvl": null,
+    "oi_dominance": 0.174,
+    "ps_ratio": null,
+    "supply_conc": null,
+    "wash_volume": null
+  },
+  "status": "watchlist",
+  "symbol": "PENDLE",
+  "token": "PENDLE",
+  "values": {
+    "funding": 0.00030000000000000003,
+    "mc_tvl": null,
+    "oi_dominance": 0.9352028276844702,
+    "ps_ratio": null,
+    "supply_conc": null,
+    "wash_volume": null
+  }
+}
