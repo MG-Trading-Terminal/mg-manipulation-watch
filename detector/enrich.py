@@ -166,6 +166,48 @@ def contract_platforms(base_symbol: str, maps: dict):
     return maps.get("platforms", {}).get(cid)
 
 
+def cg_id_for(base_symbol: str, maps: dict):
+    cg = maps.get("cg", {}).get(norm_symbol(base_symbol))
+    return (cg or {}).get("id")
+
+
+def coingecko_detail(cg_id: str) -> dict:
+    """Compact project PROFILE from /coins/{id}: what it is, who's behind it,
+    socials, categories, all-chain contracts, rank. {"_no_data": True} if absent."""
+    url = (f"https://api.coingecko.com/api/v3/coins/{cg_id}"
+           "?localization=false&tickers=false&market_data=false"
+           "&community_data=false&developer_data=false&sparkline=false")
+    d = None
+    for attempt in range(3):
+        d = _get(url)
+        if isinstance(d, dict):
+            break
+        time.sleep(4 * (attempt + 1))  # backoff on transient / rate-limit
+    if not isinstance(d, dict):
+        return None                    # transient — caller must NOT cache; retry next run
+    if not d.get("id"):
+        return {"_no_data": True}      # genuine miss — safe to cache
+    links = d.get("links") or {}
+    homepage = next((u for u in (links.get("homepage") or []) if u), None)
+    chat = next((u for u in (links.get("chat_url") or []) if u), None)
+    tw = links.get("twitter_screen_name")
+    tg = links.get("telegram_channel_identifier")
+    desc = (d.get("description") or {}).get("en") or ""
+    desc = " ".join(desc.split())  # collapse whitespace/newlines
+    return {
+        "name": d.get("name"),
+        "description": desc[:600],
+        "homepage": homepage,
+        "twitter": f"https://x.com/{tw}" if tw else None,
+        "telegram": f"https://t.me/{tg}" if tg else None,
+        "chat": chat,
+        "categories": [c for c in (d.get("categories") or []) if c][:6],
+        "platforms": {k: v for k, v in (d.get("platforms") or {}).items() if v},
+        "rank": d.get("market_cap_rank"),
+        "image": ((d.get("image") or {}).get("small")) or None,
+    }
+
+
 def load(rebuild_if_missing: bool = True) -> dict:
     if os.path.exists(CACHE):
         with open(CACHE, "r", encoding="utf-8") as f:

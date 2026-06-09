@@ -1,11 +1,19 @@
-# Public API — `data.json`
+# Public API
 
-The watchlist is **open data**. The site is generated from a single JSON document
-that anyone can fetch, no key, no auth.
+The watchlist is **open data** — anyone can fetch it, no key, no auth.
 
-```
-https://mgterminal.com/data.json
-```
+## Endpoints
+
+| endpoint | what | stability |
+|---|---|---|
+| `https://mgterminal.com/v1/data.json` | full per-token watchlist | **stable — pin this** |
+| `https://mgterminal.com/v1/token/<SYMBOL>.json` | one token's record | stable |
+| `https://mgterminal.com/data.json` | latest (alias of current version) | may change shape |
+
+**Pin `/v1/` for anything automated.** `v1` only ever changes additively (new
+fields), so your integration won't break. A breaking change ships under a new path
+(`/v2/`); the old version keeps serving. Every payload carries `api_version` and a
+`schema` string you can assert on.
 
 - **Open & free.** No API key, no rate limit, no auth.
 - **Cadence.** Regenerated automatically every **4 hours** (GitHub Action). Check
@@ -88,32 +96,40 @@ auto-condemn (they appear on plenty of legit L1s). See `SOURCES.md`.
 ## Examples
 
 ```bash
-# All suspected tokens, with their signs
-curl -s https://mgterminal.com/data.json \
+# All suspected tokens, with their signs (pin /v1/)
+curl -s https://mgterminal.com/v1/data.json \
   | jq '.by_token[] | select(.status=="suspected") | {symbol, score, flags}'
 
 # Tokens carrying >=3 signs
-curl -s https://mgterminal.com/data.json \
+curl -s https://mgterminal.com/v1/data.json \
   | jq '.by_token[] | select((.flags|length) >= 3) | {symbol, flags}'
+
+# One token (profile + signs + context)
+curl -s https://mgterminal.com/v1/token/MYX.json | jq '.token | {status, flags, profile}'
 ```
 
 ```python
 import urllib.request, json
-d = json.load(urllib.request.urlopen("https://mgterminal.com/data.json"))
+d = json.load(urllib.request.urlopen("https://mgterminal.com/v1/data.json"))
+assert d["api_version"] == 1                      # pin the contract
 multi = [t for t in d["by_token"] if len(t["flags"]) >= 2]
 print(d["generated_at"], "·", len(multi), "multi-sign tokens")
-# cross-check a symbol against your own read
-flags = {t["symbol"]: t["flags"] for t in d["by_token"]}
+flags = {t["symbol"]: t["flags"] for t in d["by_token"]}  # cross-check your own read
 print(flags.get("MYX"))
 ```
 
 ```js
-const d = await (await fetch("https://mgterminal.com/data.json")).json();
+const d = await (await fetch("https://mgterminal.com/v1/data.json")).json();
 const honeypots = d.by_token.filter((t) => t.flags.includes("honeypot"));
 ```
 
-## Versioning
+## Versioning policy
 
-`schema` is `mgterminal.crime-coins/<version>`. The version bumps on any breaking
-change to the shape; additive fields do not bump it. Pin behaviour on `schema` if
-you depend on the structure.
+- **Path = major version.** `/v1/…` is stable. Only additive changes (new fields)
+  land in v1 — existing fields and types never change or disappear, so a pinned
+  integration keeps working. A breaking change ships at `/v2/…`; `/v1/` keeps
+  serving from the last compatible build.
+- **`api_version`** (integer) is in every payload — assert on it.
+- **`schema`** (`mgterminal.crime-coins/<ver>`) tracks the internal shape for finer
+  pinning. `/data.json` is an unversioned "latest" alias — convenient for humans,
+  **don't** depend on it from code; use `/v1/`.

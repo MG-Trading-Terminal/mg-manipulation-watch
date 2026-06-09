@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from datetime import datetime, timezone
 from typing import List
 
@@ -34,7 +35,43 @@ SNAP_DIR = os.path.join(ROOT, "data", "snapshots")
 HIST = os.path.join(ROOT, "data", "history", "_scans.jsonl")
 GP_CACHE = os.path.join(ROOT, "data", "enrich", "goplus.json")
 DX_CACHE = os.path.join(ROOT, "data", "enrich", "dexscreener.json")
+CG_DETAIL_CACHE = os.path.join(ROOT, "data", "enrich", "cg_detail.json")
 CONFIRMED_DIR = os.path.join(ROOT, "data", "confirmed")
+
+
+def _token_profiles(by_token: dict, maps: dict, max_fetch: int = 200) -> int:
+    """Attach a rich CoinGecko PROFILE to each token (what it is, who's behind it,
+    socials, categories, all-chain contracts, logo). Cached + budgeted per run."""
+    cache = _load_json(CG_DETAIL_CACHE)
+    sym_cgid, want = {}, []
+    for sym in by_token:
+        cid = enrich.cg_id_for(sym, maps)
+        if not cid:
+            continue
+        sym_cgid[sym] = cid
+        if cid not in cache:
+            want.append(cid)
+    attempts = 0
+    got = False
+    for cid in want:
+        if attempts >= max_fetch:
+            break
+        attempts += 1
+        r = enrich.coingecko_detail(cid)
+        time.sleep(2.5)  # CoinGecko free-tier pacing (stay under ~30/min)
+        if r is not None:               # None = transient; skip caching, retry next run
+            cache[cid] = r
+            got = True
+    if got:
+        _save_json(CG_DETAIL_CACHE, cache)
+    profiled = 0
+    for sym, t in by_token.items():
+        cid = sym_cgid.get(sym)
+        p = cache.get(cid) if cid else None
+        if p and not p.get("_no_data"):
+            t["profile"] = p
+            profiled += 1
+    return profiled
 
 # Sort priority — human verdicts rise to the top, cleared sinks.
 STATUS_RANK = {"confirmed": 4, "likely": 3, "suspected": 2, "watchlist": 1, "cleared": 0}
@@ -331,6 +368,9 @@ def run(venues=None) -> dict:
             if e not in t["evidence"]:
                 t["evidence"].append(e)
 
+    # Rich project profiles (description, socials, categories, contracts, logo).
+    profiled = _token_profiles(by_token, maps)
+
     token_list = sorted(
         by_token.values(),
         key=lambda t: (STATUS_RANK.get(t["status"], 1), len(t["flags"]), t["score"], len(t["venues"])),
@@ -350,6 +390,7 @@ def run(venues=None) -> dict:
 
     dataset = {
         "schema": "mgterminal.crime-coins/v0.6-lifecycle",
+        "api_version": 1,
         "disclaimer": "Automated manipulation-risk heuristic. 'suspected' is an "
                       "unverified machine signal, not an accusation. See README.",
         "generated_at": now,
@@ -357,6 +398,7 @@ def run(venues=None) -> dict:
         "count": len(records),
         "token_count": len(token_list),
         "enriched": enriched,
+        "profiled": profiled,
         "contract_checked": len(secmap),
         "dex_checked": len(dxmap),
         "contract_scam": contract_scam,

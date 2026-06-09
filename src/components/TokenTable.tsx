@@ -25,7 +25,14 @@ function TokenRow({ rank, t }: { rank: number; t: Token }) {
   return (
     <tr className="row">
       <td className="c-rank num">{String(rank).padStart(2, "0")}</td>
-      <td className="c-sym"><a className="sym mono" href={`#/token/${encodeURIComponent(t.symbol)}`}>{t.symbol}</a></td>
+      <td className="c-sym">
+        <a className="sym-link" href={`#/token/${encodeURIComponent(t.symbol)}`}>
+          {t.profile?.image
+            ? <img className="tlogo" src={t.profile.image} alt="" loading="lazy" width={18} height={18} />
+            : <span className="tlogo tlogo-ph" />}
+          <span className="sym mono">{t.symbol}</span>
+        </a>
+      </td>
       <td className="c-venue">
         <span className="venue" title={venues.join(", ")}>{venues.length}× <span className="vsub">{vlabel}</span></span>
       </td>

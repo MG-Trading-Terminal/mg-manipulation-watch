@@ -94,6 +94,26 @@ export function dexscreenerUrl(contract?: string): string | null {
   return contract ? `https://dexscreener.com/search?q=${contract}` : null;
 }
 
+// CoinGecko platform id -> [display name, explorer token base]
+const CG_PLATFORM_EXPLORER: Record<string, [string, string]> = {
+  ethereum: ["Ethereum", "https://etherscan.io/token/"],
+  "binance-smart-chain": ["BSC", "https://bscscan.com/token/"],
+  "polygon-pos": ["Polygon", "https://polygonscan.com/token/"],
+  "arbitrum-one": ["Arbitrum", "https://arbiscan.io/token/"],
+  base: ["Base", "https://basescan.org/token/"],
+  "optimistic-ethereum": ["Optimism", "https://optimistic.etherscan.io/token/"],
+  avalanche: ["Avalanche", "https://snowtrace.io/token/"],
+  fantom: ["Fantom", "https://ftmscan.com/token/"],
+  solana: ["Solana", "https://solscan.io/token/"],
+  "hyperliquid": ["Hyperliquid", "https://app.hyperliquid.xyz/explorer/address/"],
+};
+export function platformLink(platform: string, address: string): { label: string; url: string } {
+  const m = CG_PLATFORM_EXPLORER[platform];
+  return m
+    ? { label: m[0], url: m[1] + address }
+    : { label: platform, url: `https://dexscreener.com/search?q=${address}` };
+}
+
 /** Badge tier from a token's signs — mirrors scripts/build-badges.mjs. */
 export function badgeTier(flags: string[], status: string): { value: string; color: string; text: string } {
   const flagged = status === "suspected" || flags.includes("honeypot") || flags.includes("high-tax");
@@ -105,6 +125,19 @@ export function badgeTier(flags: string[], status: string): { value: string; col
 export function scoreClass(s: number): string {
   return s >= 70 ? "sc-hi" : s >= 50 ? "sc-mid" : "sc-lo";
 }
+
+/** A loud, beginner-readable verdict for the detail hero. */
+export function riskLevel(flags: string[], status: string): { label: string; tone: "red" | "amber" | "green"; blurb: string } {
+  if (status === "confirmed") return { label: "CONFIRMED SCAM", tone: "red", blurb: "Human-reviewed — stays flagged." };
+  if (status === "cleared") return { label: "CLEARED", tone: "green", blurb: "Reviewed — false positive." };
+  if (flags.includes("honeypot")) return { label: "HOSTILE CONTRACT", tone: "red", blurb: "Selling may be blocked — do not enter." };
+  if (status === "suspected") return { label: "HIGH RISK", tone: "red", blurb: "Suspected active manipulation." };
+  if (flags.length >= 3) return { label: "ELEVATED RISK", tone: "amber", blurb: `${flags.length} risk signs present.` };
+  if (flags.length >= 1) return { label: "CAUTION", tone: "amber", blurb: `${flags.length} risk sign${flags.length > 1 ? "s" : ""} present.` };
+  return { label: "NO SIGNS", tone: "green", blurb: "Clean in this scan — still DYOR." };
+}
+
+export const TONE_COLOR: Record<string, string> = { red: "#ff5b5b", amber: "#ffb547", green: "#3ee07f" };
 
 type Ctx = Record<string, number | string | null | undefined>;
 

@@ -24,6 +24,19 @@ export interface Evidence {
   url: string;
 }
 
+export interface TokenProfile {
+  name?: string;
+  description?: string;
+  homepage?: string;
+  twitter?: string;
+  telegram?: string;
+  chat?: string;
+  categories?: string[];
+  platforms?: Record<string, string>;
+  rank?: number;
+  image?: string;
+}
+
 export interface Token {
   symbol: string;
   venues: string[];
@@ -33,6 +46,7 @@ export interface Token {
   oak_techniques: string[];
   context: TokenContext;
   evidence: Evidence[];
+  profile?: TokenProfile;
   human_reviewed?: boolean;
   reviewer?: string;
   reviewed_at?: string;
