@@ -12,8 +12,12 @@ export PATH="/usr/bin:/usr/local/bin:/opt/homebrew/bin:$PATH"
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd "$DIR" || exit 1
 [ -f "$DIR/.env" ] && { set -a; . "$DIR/.env"; set +a; }   # load key + tunables
 
-: "${PROFILE_BUDGET:=400}"; export PROFILE_BUDGET
-: "${PROFILE_PACE:=2.5}";   export PROFILE_PACE
+# With a CoinGecko key (100/min) go fast; without, stay polite. Env overrides.
+: "${PROFILE_BUDGET:=600}"; export PROFILE_BUDGET
+if [ -z "${PROFILE_PACE:-}" ]; then
+  [ -n "${COINGECKO_API_KEY:-}" ] && PROFILE_PACE=0.6 || PROFILE_PACE=2.5
+fi
+export PROFILE_PACE
 echo "fill: budget=$PROFILE_BUDGET pace=${PROFILE_PACE}s  cg-key=$([ -n "${COINGECKO_API_KEY:-}" ] && echo set || echo none)"
 
 python3 -m detector.collect | sed -n '1,3p'

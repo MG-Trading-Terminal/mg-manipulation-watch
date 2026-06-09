@@ -369,12 +369,13 @@ def run(venues=None) -> dict:
                 t["evidence"].append(e)
 
     # Rich project profiles (description, socials, categories, contracts, logo).
-    # Budget/pace are env-tunable for a fast init (VPN rotation / demo key) vs the
-    # small steady 4h increment.
+    # Pace auto-adapts to the CoinGecko key (Demo = 100/min -> 0.6s; free -> 2.5s);
+    # env PROFILE_PACE / PROFILE_BUDGET override.
+    default_pace = 0.6 if os.environ.get("COINGECKO_API_KEY") else 2.5
     profiled = _token_profiles(
         by_token, maps,
         max_fetch=int(os.environ.get("PROFILE_BUDGET", "200")),
-        pace=float(os.environ.get("PROFILE_PACE", "2.5")),
+        pace=float(os.environ.get("PROFILE_PACE", str(default_pace))),
     )
 
     token_list = sorted(
