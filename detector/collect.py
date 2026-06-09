@@ -96,7 +96,7 @@ def _goplus_security(contracts, max_fetch=500):
     for sym, ca in contracts.items():
         if ca:
             sec = cache.get(f"{ca[0]}:{ca[1]}")
-            if sec:
+            if sec and not sec.get("_no_data"):   # skip negatively-cached (checked, no record)
                 secmap[sym] = sec
     return secmap
 

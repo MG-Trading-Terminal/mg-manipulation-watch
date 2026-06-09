@@ -53,23 +53,32 @@ def _f(x) -> Optional[float]:
         return None
 
 
-def token_security(chain_id: str, addresses: List[str], pacing: float = 1.4) -> Dict[str, dict]:
+def token_security(chain_id: str, addresses: List[str], pacing: float = 1.2) -> Dict[str, dict]:
     """GoPlus token_security for one chain, keyed by lowercased address.
 
     Queried ONE address at a time: GoPlus's multi-address batch only returns the
     tokens it has already analyzed (≈1 of 20 for a cold set), so per-address is
     the only reliable path. Results are cached by the caller, so this cost is paid
     once and 4h runs only fetch new contracts.
+
+    To CHECK EVERYONE in few passes: retry transient/429 failures with backoff,
+    and return a {"_no_data": True} marker for addresses GoPlus genuinely has no
+    record of, so the caller can cache them as "checked" and not refetch forever.
     """
     out = {}
     for a in sorted({a.lower() for a in addresses if a}):
         url = (f"https://api.gopluslabs.io/api/v1/token_security/{chain_id}"
                f"?contract_addresses={a}")
-        d = _get(url)
-        if isinstance(d, dict) and isinstance(d.get("result"), dict):
-            for k, v in d["result"].items():
-                out[k.lower()] = v
-        time.sleep(pacing)  # free-tier pacing
+        sec = None
+        for attempt in range(3):
+            d = _get(url)
+            if isinstance(d, dict):
+                res = {k.lower(): v for k, v in (d.get("result") or {}).items()}
+                sec = res.get(a)          # None if GoPlus has no record
+                break
+            time.sleep(3 * (attempt + 1))  # backoff on transient / rate-limit
+        out[a] = sec if sec is not None else {"_no_data": True}
+        time.sleep(pacing)
     return out
 
 
