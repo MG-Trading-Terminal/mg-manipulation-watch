@@ -51,6 +51,20 @@ python3 web/build.py                # regenerate dist/ from the JSON
 python3 -m detector.scan SOL        # score one token from the universe, live
 ```
 
+## Local operation (no repo / no cloud — the current mode)
+The system runs fully locally and accumulates an append-only base under
+`data/history/<SYMBOL>.jsonl` (one line per token per scan). Three ways to run:
+```bash
+bash scripts/scan-once.sh           # one cycle: scan + history + rebuild dist
+bash scripts/run-loop.sh            # foreground 4h loop (leave in a terminal/tmux)
+bash scripts/install-agent.sh       # unattended launchd agent, every 4h (macOS)
+bash scripts/serve.sh               # view dist/ at http://localhost:8787
+```
+`install-agent.sh` installs a persistent LaunchAgent — run it yourself when ready
+(`bash scripts/uninstall-agent.sh` to stop; the base is left intact). Deploy/repo
+are deferred until the base is built. Logs: `data/logs/scan.log` (gitignored);
+`data/history/` is the base and IS tracked.
+
 ## Design system (MeatGrinder / MG Terminal)
 Dark only. `--bg-0:#050505`, accent **MG green `#3ee07f`** (the ONLY accent;
 red/amber = state). Type: *Instrument Serif* display, *Geist* sans UI, *Geist Mono*

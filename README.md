@@ -54,6 +54,16 @@ python3 web/build.py                # generate dist/index.html + dist/data.json
 ```
 No dependencies — Python 3.9+ stdlib only.
 
+### Run it locally (no repo / no cloud)
+The system accumulates an append-only base under `data/history/` so you can watch
+a token's score climb into a squeeze over time. Pick one:
+```bash
+bash scripts/scan-once.sh     # one cycle (scan + history + rebuild site)
+bash scripts/run-loop.sh      # foreground loop, every 4h
+bash scripts/install-agent.sh # unattended macOS agent, every 4h (uninstall-agent.sh to stop)
+bash scripts/serve.sh         # view at http://localhost:8787
+```
+
 ## Repo map
 ```
 detector/   scoring engine, data sources, pipeline, fixtures

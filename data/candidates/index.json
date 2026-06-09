@@ -1,61 +1,59 @@
 {
   "schema": "mgterminal.crime-coins/v0.1",
   "disclaimer": "Automated manipulation-risk heuristic. 'suspected' is an unverified machine signal, not an accusation. See README.",
-  "generated_at": "2026-06-09T06:56:02+00:00",
+  "generated_at": "2026-06-09T07:12:02+00:00",
   "count": 7,
   "suspected": 0,
   "tokens": [
     {
-      "token": "ENA",
+      "token": "AAVE",
       "status": "watchlist",
-      "score": 20,
-      "confidence": 0.8,
+      "score": 8,
+      "confidence": 0.4,
       "attribution": "unattributed",
-      "oak_techniques": [
-        "OAK-T17.001"
-      ],
+      "oak_techniques": [],
       "signals": {
-        "mc_tvl": 0.0,
+        "mc_tvl": null,
         "funding": 0.0,
-        "oi_dominance": 0.0,
-        "ps_ratio": 1.0,
+        "oi_dominance": 0.175,
+        "ps_ratio": null,
         "supply_conc": null,
         "wash_volume": null
       },
       "values": {
-        "mc_tvl": 0.15335080863598252,
-        "funding": -0.0016235400000000001,
-        "oi_dominance": 0.0576000741804914,
-        "ps_ratio": 3398.168945295013,
+        "mc_tvl": null,
+        "funding": -0.00020955000000000002,
+        "oi_dominance": 0.9367669937283135,
+        "ps_ratio": null,
         "supply_conc": null,
         "wash_volume": null
       },
       "available_signals": [
-        "mc_tvl",
         "funding",
-        "oi_dominance",
-        "ps_ratio"
+        "oi_dominance"
       ],
       "missing_signals": [
+        "mc_tvl",
+        "ps_ratio",
         "supply_conc",
         "wash_volume"
       ],
       "reviewer": null,
       "note": "Alleged market-manipulation pattern; automated heuristic, not a determination of wrongdoing.",
-      "symbol": "ENA",
-      "last_checked": "2026-06-09T06:56:02+00:00",
+      "symbol": "AAVE",
+      "last_checked": "2026-06-09T07:12:02+00:00",
       "evidence": [
         {
           "label": "Coinglass funding/OI",
-          "url": "https://www.coinglass.com/currencies/ENA"
+          "url": "https://www.coinglass.com/currencies/AAVE"
         },
         {
           "label": "CoinGecko",
-          "url": "https://www.coingecko.com/en/coins/ethena"
+          "url": "https://www.coingecko.com/en/coins/aave"
         },
         {
           "label": "DefiLlama TVL",
-          "url": "https://defillama.com/protocol/ethena"
+          "url": "https://defillama.com/protocol/aave"
         }
       ]
     },
@@ -77,7 +75,7 @@
       "values": {
         "mc_tvl": null,
         "funding": 0.00030000000000000003,
-        "oi_dominance": 0.9352028276844702,
+        "oi_dominance": 0.9348796646098549,
         "ps_ratio": null,
         "supply_conc": null,
         "wash_volume": null
@@ -95,7 +93,7 @@
       "reviewer": null,
       "note": "Alleged market-manipulation pattern; automated heuristic, not a determination of wrongdoing.",
       "symbol": "PENDLE",
-      "last_checked": "2026-06-09T06:56:02+00:00",
+      "last_checked": "2026-06-09T07:12:02+00:00",
       "evidence": [
         {
           "label": "Coinglass funding/OI",
@@ -121,15 +119,15 @@
       "signals": {
         "mc_tvl": null,
         "funding": 0.0,
-        "oi_dominance": 0.085,
+        "oi_dominance": 0.086,
         "ps_ratio": null,
         "supply_conc": null,
         "wash_volume": null
       },
       "values": {
         "mc_tvl": null,
-        "funding": -0.00153162,
-        "oi_dominance": 0.7125824351889672,
+        "funding": -0.00126852,
+        "oi_dominance": 0.7151144017491584,
         "ps_ratio": null,
         "supply_conc": null,
         "wash_volume": null
@@ -147,7 +145,7 @@
       "reviewer": null,
       "note": "Alleged market-manipulation pattern; automated heuristic, not a determination of wrongdoing.",
       "symbol": "JUP",
-      "last_checked": "2026-06-09T06:56:02+00:00",
+      "last_checked": "2026-06-09T07:12:02+00:00",
       "evidence": [
         {
           "label": "Coinglass funding/OI",
@@ -166,22 +164,22 @@
     {
       "token": "BTC",
       "status": "watchlist",
-      "score": 0,
+      "score": 1,
       "confidence": 0.4,
       "attribution": "unattributed",
       "oak_techniques": [],
       "signals": {
         "mc_tvl": null,
         "funding": 0.0,
-        "oi_dominance": 0.0,
+        "oi_dominance": 0.014,
         "ps_ratio": null,
         "supply_conc": null,
         "wash_volume": null
       },
       "values": {
         "mc_tvl": null,
-        "funding": 5.376e-05,
-        "oi_dominance": 0.004924204949725056,
+        "funding": 7.986e-05,
+        "oi_dominance": 0.5339526161272158,
         "ps_ratio": null,
         "supply_conc": null,
         "wash_volume": null
@@ -199,7 +197,7 @@
       "reviewer": null,
       "note": "Alleged market-manipulation pattern; automated heuristic, not a determination of wrongdoing.",
       "symbol": "BTC",
-      "last_checked": "2026-06-09T06:56:02+00:00",
+      "last_checked": "2026-06-09T07:12:02+00:00",
       "evidence": [
         {
           "label": "Coinglass funding/OI",
@@ -228,8 +226,8 @@
       },
       "values": {
         "mc_tvl": null,
-        "funding": -6.609e-05,
-        "oi_dominance": 0.018723712812313602,
+        "funding": -3.468e-05,
+        "oi_dominance": 0.40829036917752404,
         "ps_ratio": null,
         "supply_conc": null,
         "wash_volume": null
@@ -247,7 +245,7 @@
       "reviewer": null,
       "note": "Alleged market-manipulation pattern; automated heuristic, not a determination of wrongdoing.",
       "symbol": "ETH",
-      "last_checked": "2026-06-09T06:56:02+00:00",
+      "last_checked": "2026-06-09T07:12:02+00:00",
       "evidence": [
         {
           "label": "Coinglass funding/OI",
@@ -276,8 +274,8 @@
       },
       "values": {
         "mc_tvl": null,
-        "funding": -0.00015993000000000002,
-        "oi_dominance": 0.016431648591626203,
+        "funding": -0.00012594,
+        "oi_dominance": 0.38664251480027434,
         "ps_ratio": null,
         "supply_conc": null,
         "wash_volume": null
@@ -295,7 +293,7 @@
       "reviewer": null,
       "note": "Alleged market-manipulation pattern; automated heuristic, not a determination of wrongdoing.",
       "symbol": "SOL",
-      "last_checked": "2026-06-09T06:56:02+00:00",
+      "last_checked": "2026-06-09T07:12:02+00:00",
       "evidence": [
         {
           "label": "Coinglass funding/OI",
@@ -308,54 +306,54 @@
       ]
     },
     {
-      "token": "AAVE",
+      "token": "ENA",
       "status": "watchlist",
       "score": 0,
-      "confidence": 0.8,
+      "confidence": 0.4,
       "attribution": "unattributed",
       "oak_techniques": [],
       "signals": {
-        "mc_tvl": 0.0,
+        "mc_tvl": null,
         "funding": 0.0,
         "oi_dominance": 0.0,
-        "ps_ratio": 0.0,
+        "ps_ratio": null,
         "supply_conc": null,
         "wash_volume": null
       },
       "values": {
-        "mc_tvl": 0.07662732776326014,
-        "funding": -0.00025347,
-        "oi_dominance": 0.042331769765301994,
-        "ps_ratio": 2.723382012014698,
+        "mc_tvl": null,
+        "funding": -0.00145554,
+        "oi_dominance": 0.28892553562987494,
+        "ps_ratio": null,
         "supply_conc": null,
         "wash_volume": null
       },
       "available_signals": [
-        "mc_tvl",
         "funding",
-        "oi_dominance",
-        "ps_ratio"
+        "oi_dominance"
       ],
       "missing_signals": [
+        "mc_tvl",
+        "ps_ratio",
         "supply_conc",
         "wash_volume"
       ],
       "reviewer": null,
       "note": "Alleged market-manipulation pattern; automated heuristic, not a determination of wrongdoing.",
-      "symbol": "AAVE",
-      "last_checked": "2026-06-09T06:56:02+00:00",
+      "symbol": "ENA",
+      "last_checked": "2026-06-09T07:12:02+00:00",
       "evidence": [
         {
           "label": "Coinglass funding/OI",
-          "url": "https://www.coinglass.com/currencies/AAVE"
+          "url": "https://www.coinglass.com/currencies/ENA"
         },
         {
           "label": "CoinGecko",
-          "url": "https://www.coingecko.com/en/coins/aave"
+          "url": "https://www.coingecko.com/en/coins/ethena"
         },
         {
           "label": "DefiLlama TVL",
-          "url": "https://defillama.com/protocol/aave"
+          "url": "https://defillama.com/protocol/ethena"
         }
       ]
     }

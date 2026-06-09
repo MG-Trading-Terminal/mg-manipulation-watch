@@ -7,6 +7,9 @@ __pycache__/
 # Generated site (rebuilt by CI from the JSON; not source)
 dist/
 
+# Local runtime logs (data/history/ IS the base — keep it tracked)
+data/logs/
+
 # OS / editor
 .DS_Store
 *.swp

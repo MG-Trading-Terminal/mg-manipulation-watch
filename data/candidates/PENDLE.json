@@ -19,7 +19,7 @@
       "url": "https://defillama.com/protocol/pendle"
     }
   ],
-  "last_checked": "2026-06-09T06:56:02+00:00",
+  "last_checked": "2026-06-09T07:12:02+00:00",
   "missing_signals": [
     "mc_tvl",
     "ps_ratio",
@@ -44,7 +44,7 @@
   "values": {
     "funding": 0.00030000000000000003,
     "mc_tvl": null,
-    "oi_dominance": 0.9352028276844702,
+    "oi_dominance": 0.9348796646098549,
     "ps_ratio": null,
     "supply_conc": null,
     "wash_volume": null

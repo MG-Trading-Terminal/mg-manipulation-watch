@@ -48,7 +48,7 @@ jobs:
         run: |
           git config user.name "mg-terminal-bot"
           git config user.email "bot@mgterminal.com"
-          git add data/candidates
+          git add data/candidates data/history
           if git diff --cached --quiet; then
             echo "no data changes"
           else

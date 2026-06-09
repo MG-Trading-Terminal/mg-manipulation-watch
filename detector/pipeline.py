@@ -26,6 +26,35 @@ from .sources import fetch_signals
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UNIVERSE = os.path.join(ROOT, "data", "universe.json")
 OUT_DIR = os.path.join(ROOT, "data", "candidates")
+HIST_DIR = os.path.join(ROOT, "data", "history")
+
+
+def _append_history(records: List[dict], now: str, hist_dir: str = HIST_DIR) -> None:
+    """Append-only time series — THE accumulating base.
+
+    One compact JSONL line per token per scan, plus a per-scan summary. This is
+    what lets us watch a token's score/funding/OI climb into a squeeze over time
+    (a token *entering* the pattern is the real signal) and is the canonical
+    record for cross-checking (сверка). Never overwritten.
+    """
+    os.makedirs(hist_dir, exist_ok=True)
+    for r in records:
+        line = json.dumps({
+            "t": now,
+            "score": r["score"],
+            "status": r["status"],
+            "confidence": r["confidence"],
+            "oak": r["oak_techniques"],
+            "signals": r["signals"],
+        }, sort_keys=True)
+        with open(os.path.join(hist_dir, f"{r['symbol']}.jsonl"), "a", encoding="utf-8") as fp:
+            fp.write(line + "\n")
+    with open(os.path.join(hist_dir, "_scans.jsonl"), "a", encoding="utf-8") as fp:
+        fp.write(json.dumps({
+            "t": now,
+            "count": len(records),
+            "suspected": sum(1 for r in records if r["status"] == "suspected"),
+        }) + "\n")
 
 
 def _evidence_links(entry: dict) -> List[dict]:
@@ -65,6 +94,8 @@ def run(universe_path: str = UNIVERSE, out_dir: str = OUT_DIR) -> dict:
         with open(os.path.join(out_dir, f"{sym}.json"), "w", encoding="utf-8") as fp:
             json.dump(rec, fp, indent=2, sort_keys=True)
             fp.write("\n")
+
+    _append_history(records, now)
 
     records.sort(key=lambda r: r["score"], reverse=True)
     dataset = {

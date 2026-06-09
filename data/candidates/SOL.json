@@ -15,7 +15,7 @@
       "url": "https://www.coingecko.com/en/coins/solana"
     }
   ],
-  "last_checked": "2026-06-09T06:56:02+00:00",
+  "last_checked": "2026-06-09T07:12:02+00:00",
   "missing_signals": [
     "mc_tvl",
     "ps_ratio",
@@ -38,9 +38,9 @@
   "symbol": "SOL",
   "token": "SOL",
   "values": {
-    "funding": -0.00015993000000000002,
+    "funding": -0.00012594,
     "mc_tvl": null,
-    "oi_dominance": 0.016431648591626203,
+    "oi_dominance": 0.38664251480027434,
     "ps_ratio": null,
     "supply_conc": null,
     "wash_volume": null
