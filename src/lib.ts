@@ -46,6 +46,54 @@ export const STATUS_CHIP: Record<string, string> = {
 
 export const num = (n: number): string => Number(n).toLocaleString("en-US");
 
+/** Plain-English, beginner-readable description per sign (paired with the chip). */
+export const FLAG_DESCRIPTION: Record<string, string> = {
+  squeeze: "Deeply negative funding — shorts are bleeding fees. A classic engineered short-squeeze.",
+  "oi-dominance": "Open interest is large versus the real float — price is driven by perps, not spot.",
+  "thin-liquidity": "The DEX pool is tiny versus the token's valuation — its price is easy to move.",
+  "fresh-launch": "A brand-new trading pair already sitting at a large valuation.",
+  honeypot: "The contract may block selling (or taxes selling ~100%). You could buy but not get out.",
+  "high-tax": "An extractive sell tax (≥10%) skims your exit.",
+  mintable: "The team can mint more supply — your share can be diluted.",
+  "owner-control": "Owner can pause transfers, hide ownership, or rewrite balances.",
+  "holder-concentration": "A few wallets hold most of the supply — they can dump on you.",
+  "closed-source": "The contract isn't verified — you can't see what it does.",
+  "mc/tvl-disconnect": "Market cap dwarfs the value locked in the protocol (shown as context only).",
+  "ps-disconnect": "Market cap dwarfs the revenue it earns (shown as context only).",
+  "low-float": "Most supply isn't circulating yet — unlocks can flood the market.",
+};
+
+export function fmtUsd(n?: number | null): string {
+  if (n == null) return "—";
+  const a = Math.abs(n);
+  if (a >= 1e9) return `$${(n / 1e9).toFixed(2)}B`;
+  if (a >= 1e6) return `$${(n / 1e6).toFixed(1)}M`;
+  if (a >= 1e3) return `$${(n / 1e3).toFixed(1)}K`;
+  return `$${n.toFixed(0)}`;
+}
+
+export const pct = (x?: number | null, dp = 1): string =>
+  x == null ? "—" : `${(x * 100).toFixed(dp)}%`;
+
+const EXPLORERS: Record<string, string> = {
+  "1": "https://etherscan.io/token/", "56": "https://bscscan.com/token/",
+  "137": "https://polygonscan.com/token/", "42161": "https://arbiscan.io/token/",
+  "8453": "https://basescan.org/token/", "10": "https://optimistic.etherscan.io/token/",
+  "43114": "https://snowtrace.io/token/", "250": "https://ftmscan.com/token/",
+  solana: "https://solscan.io/token/",
+};
+export function explorerUrl(chain?: string, contract?: string): string | null {
+  if (!contract) return null;
+  const base = EXPLORERS[String(chain ?? "")];
+  return base ? base + contract : null;
+}
+export function goplusUrl(chain?: string, contract?: string): string | null {
+  return contract ? `https://gopluslabs.io/token-security/${chain ?? "1"}/${contract}` : null;
+}
+export function dexscreenerUrl(contract?: string): string | null {
+  return contract ? `https://dexscreener.com/search?q=${contract}` : null;
+}
+
 /** Badge tier from a token's signs — mirrors scripts/build-badges.mjs. */
 export function badgeTier(flags: string[], status: string): { value: string; color: string; text: string } {
   const flagged = status === "suspected" || flags.includes("honeypot") || flags.includes("high-tax");

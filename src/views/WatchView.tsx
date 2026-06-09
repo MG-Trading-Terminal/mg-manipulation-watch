@@ -1,9 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { num } from "../lib";
+import { FLAG_DESCRIPTION, FLAG_LABEL, num } from "../lib";
 import { data } from "../types";
 import { FlagViz } from "../components/FlagViz";
 import { TokenTable } from "../components/TokenTable";
 import { Pager } from "../components/Pager";
+
+const GLOSSARY_ORDER = [
+  "honeypot", "high-tax", "mintable", "owner-control", "holder-concentration",
+  "closed-source", "squeeze", "oi-dominance", "thin-liquidity", "fresh-launch",
+  "mc/tvl-disconnect", "ps-disconnect", "low-float",
+];
 
 const FILTERS = [
   ["all", "All"], ["suspected", "Suspected"], ["multi", "Multi-sign"], ["watchlist", "Watchlist"],
@@ -60,11 +66,28 @@ export function WatchView() {
       </section>
 
       <div className="disc">
-        <b>Not an accusation.</b> A <b>suspected</b> status is an unverified, automated
-        heuristic — a starting point for research, never a determination of wrongdoing.
-        Human-reviewed states (<i>likely / confirmed / cleared</i>) are gated separately.
-        Nothing here is financial advice.
+        <b>If a token is flagged here, treat it as high-risk until you've done your own
+        research.</b> A <b>suspected</b> status is an unverified, automated heuristic —
+        a starting point, never a determination of wrongdoing. Human-reviewed states
+        (<i>likely / confirmed / cleared</i>) are gated separately. Not financial advice.
       </div>
+
+      <details className="glossary">
+        <summary>What do the signs mean? <span className="ghint">(click)</span></summary>
+        <div className="gloss-grid">
+          {GLOSSARY_ORDER.map((k) => (
+            <div className="gloss-row" key={k}>
+              <span className="gloss-k">{FLAG_LABEL[k] ?? k}</span>
+              <span className="gloss-d">{FLAG_DESCRIPTION[k]}</span>
+            </div>
+          ))}
+        </div>
+        <div className="gloss-foot">
+          Status: <a href="#/methodology"><b>watchlist → suspected</b></a> (automated) ·
+          <i> likely / confirmed / cleared</i> (human-reviewed). Score 0–100 —
+          ≥70 high risk (red), ≥50 medium (amber).
+        </div>
+      </details>
 
       <div className="stats">
         <Stat k="Tokens" v={num(d.token_count)} />
@@ -77,6 +100,9 @@ export function WatchView() {
         checked: GoPlus {d.contract_checked} · DexScreener {d.dex_checked} · {num(d.count)} markets
       </div>
 
+      <div className="eyebrow" style={{ margin: "26px 2px 2px" }}>
+        signs by frequency — across {num(d.token_count)} scanned tokens
+      </div>
       <FlagViz flagCounts={d.flag_counts} />
 
       <div className="controls">

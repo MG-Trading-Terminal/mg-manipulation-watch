@@ -33,6 +33,10 @@ export interface Token {
   oak_techniques: string[];
   context: TokenContext;
   evidence: Evidence[];
+  human_reviewed?: boolean;
+  reviewer?: string;
+  reviewed_at?: string;
+  summary?: string;
 }
 
 export interface SiteData {
@@ -47,6 +51,9 @@ export interface SiteData {
   contract_scam: number;
   suspected: number;
   suspected_tokens: number;
+  confirmed_count?: number;
+  likely_count?: number;
+  cleared_count?: number;
   multi_sign: number;
   flag_counts: Record<string, number>;
   by_token: Token[];
@@ -55,3 +62,6 @@ export interface SiteData {
 export type FlagCounts = Record<string, number>;
 
 export const data: SiteData = siteData as unknown as SiteData;
+
+export const tokenBySymbol = (sym: string): Token | undefined =>
+  data.by_token.find((t) => t.symbol.toUpperCase() === sym.toUpperCase());

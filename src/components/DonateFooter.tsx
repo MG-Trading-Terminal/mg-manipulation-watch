@@ -1,11 +1,10 @@
 import { data } from "../types";
 
-// Placeholder addresses — replace with real ones before launch.
-const WALLETS = [
-  ["EVM", "0x0000000000000000000000000000000000000000"],
-  ["SOL", "So11111111111111111111111111111111111111112"],
-  ["BTC", "bc1qxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"],
-] as const;
+// Real donation addresses go here before public launch. Until then we show NO
+// address — never ship a placeholder that could silently receive (and lose) funds.
+const WALLETS: ReadonlyArray<readonly [string, string]> = [
+  // ["EVM", "0x…"], ["SOL", "…"], ["BTC", "bc1…"],
+];
 
 export function DonateFooter() {
   const d = data;
@@ -18,14 +17,18 @@ export function DonateFooter() {
           No ads, no token, no paywall — the data stays open. If MG Terminal kept you
           out of a rug, chip in and keep the lights on. <b>Without you, we don't scan.</b>
         </p>
-        <div className="wallets">
-          {WALLETS.map(([chain, addr]) => (
-            <div className="wallet" key={chain}>
-              <span className="wchain">{chain}</span>
-              <code className="waddr" title="click to select">{addr}</code>
-            </div>
-          ))}
-        </div>
+        {WALLETS.length > 0 ? (
+          <div className="wallets">
+            {WALLETS.map(([chain, addr]) => (
+              <div className="wallet" key={chain}>
+                <span className="wchain">{chain}</span>
+                <code className="waddr" title="click to select">{addr}</code>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="donate-soon">Donation addresses go live at launch.</p>
+        )}
       </section>
 
       <footer>
