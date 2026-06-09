@@ -1,1 +1,1 @@
-{"t": "2026-06-09T07:53:19+00:00", "count": 3798, "suspected": 0, "venues": {"binance": 741, "bybit": 582, "bitget": 617, "gate": 734, "mexc": 894, "hyperliquid": 230}}
+{"t": "2026-06-09T08:14:34+00:00", "count": 3799, "suspected": 2, "multi_sign": 5, "flag_counts": {"squeeze": 2, "mc/tvl-disconnect": 126, "ps-disconnect": 128, "oi-dominance": 12}, "venues": {"binance": 741, "bybit": 582, "bitget": 618, "gate": 734, "mexc": 894, "hyperliquid": 230}}

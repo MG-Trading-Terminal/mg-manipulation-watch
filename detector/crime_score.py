@@ -109,16 +109,18 @@ def _mc_tvl(s: Signals) -> Optional[tuple]:
     if s.market_cap_usd is None or s.tvl_usd is None or s.tvl_usd <= 0:
         return None
     ratio = s.market_cap_usd / s.tvl_usd
-    # Healthy protocols sit 1-4x. Crime-coin disconnect ramps 5x..80x. (MYX ~120x)
-    return _log_ramp(ratio, 5.0, 80.0), ratio
+    # Only EXTREME disconnect counts — L1s/established tokens routinely run 5-20x
+    # without being crime. Ramp 10x..200x so only a real blow-out fires (MYX ~120x).
+    return _log_ramp(ratio, 10.0, 200.0), ratio
 
 
 def _ps(s: Signals) -> Optional[tuple]:
     if s.market_cap_usd is None or s.fees_annualized_usd is None or s.fees_annualized_usd <= 0:
         return None
     ps = s.market_cap_usd / s.fees_annualized_usd
-    # Normal protocols are tens. Crime coins run into the thousands. (MYX ~3500x)
-    return _log_ramp(ps, 50.0, 2000.0), ps
+    # Many legit tokens have high P/S; only the absurd counts. Ramp 200x..5000x
+    # so only a real blow-out fires (MYX ~3500x).
+    return _log_ramp(ps, 200.0, 5000.0), ps
 
 
 def _funding(s: Signals) -> Optional[tuple]:

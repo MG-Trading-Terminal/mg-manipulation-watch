@@ -103,11 +103,33 @@ def _evidence(links) -> str:
     )
 
 
+_FLAG_STYLE = {"squeeze": "fl-red", "oi-dominance": "fl-amber",
+               "mc/tvl-disconnect": "fl-info", "ps-disconnect": "fl-info"}
+_FLAG_LABEL = {"squeeze": "SQUEEZE", "oi-dominance": "OI", "mc/tvl-disconnect": "MC/TVL",
+               "ps-disconnect": "P/S"}
+
+
+def _flag_chips(flags, ctx) -> str:
+    if not flags:
+        return '<span class="oak-none">—</span>'
+    out = []
+    for fl in flags:
+        title = ""
+        if fl == "mc/tvl-disconnect" and ctx.get("mc_tvl"):
+            title = f"MC/TVL {ctx['mc_tvl']}x"
+        elif fl == "ps-disconnect" and ctx.get("ps"):
+            title = f"P/S {ctx['ps']}x"
+        out.append(f'<span class="fl {_FLAG_STYLE.get(fl, "fl-info")}" '
+                   f'title="{_esc(title)}">{_esc(_FLAG_LABEL.get(fl, fl))}</span>')
+    return " ".join(out)
+
+
 def _row(rank: int, r: dict) -> str:
     score = r.get("score", 0)
     conf = r.get("confidence", 0.0)
+    flags = r.get("flags", [])
     return f"""
-    <tr class="row" data-status="{_esc(r.get('status',''))}" data-score="{score}">
+    <tr class="row" data-status="{_esc(r.get('status',''))}" data-flags="{len(flags)}" data-score="{score}">
       <td class="c-rank num">{rank:02d}</td>
       <td class="c-sym"><span class="sym mono">{_esc(r.get('symbol',''))}</span></td>
       <td class="c-venue"><span class="venue">{_esc(r.get('venue',''))}</span></td>
@@ -119,7 +141,7 @@ def _row(rank: int, r: dict) -> str:
         </div>
       </td>
       <td class="c-conf num">{conf:.2f}</td>
-      <td class="c-sigs">{_signal_bars(r.get('signals', {}))}</td>
+      <td class="c-flags">{_flag_chips(flags, r.get('context', {}))}</td>
       <td class="c-oak">{_oak_chips(r.get('oak_techniques', []))}</td>
       <td class="c-ev">{_evidence(r.get('evidence', []))}</td>
     </tr>"""
@@ -135,15 +157,18 @@ def render(dataset: dict) -> str:
     gen = dataset.get("generated_at", "")
     count = dataset.get("count", len(tokens))
     suspected = dataset.get("suspected", 0)
+    multi_sign = dataset.get("multi_sign", 0)
     venues = dataset.get("venues", {})
+    fc = dataset.get("flag_counts", {})
     venue_line = " · ".join(f"{k} {v}" for k, v in sorted(venues.items())) or "—"
+    flags_line = " · ".join(f"{k} {v}" for k, v in sorted(fc.items())) or "—"
     shown_note = (f"top {len(shown)} of {count:,} markets — full set in "
                   f"<a class='json-link' href='data.json'>data.json</a>")
 
     return TEMPLATE.format(
         rows=rows, gen=_esc(gen), count=f"{count:,}", suspected=suspected,
-        watch=f"{count - suspected:,}", venue_line=_esc(venue_line),
-        shown_note=shown_note,
+        multi_sign=multi_sign, venue_line=_esc(venue_line),
+        flags_line=_esc(flags_line), shown_note=shown_note,
     )
 
 
@@ -285,6 +310,14 @@ TEMPLATE = """<!DOCTYPE html>
   .c-sigs .sig {{ height:42px; justify-content:flex-end; }}
   .c-sigs .sig .sig-fill {{ }}
 
+  /* sign flags */
+  .fl {{ display:inline-block; padding:2px 6px; border-radius:4px; font-family:var(--font-mono);
+    font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; margin:1px 2px 1px 0; }}
+  .fl-red {{ background:rgba(255,91,91,.10); border:1px solid rgba(255,91,91,.4); color:var(--down); }}
+  .fl-amber {{ background:rgba(255,181,71,.10); border:1px solid rgba(255,181,71,.4); color:var(--warn); }}
+  .fl-info {{ background:rgba(122,167,255,.08); border:1px solid rgba(122,167,255,.35); color:var(--info); }}
+  .c-flags {{ max-width:200px; }}
+
   .oak {{ font-family:var(--font-mono); font-size:10px; color:var(--mg); padding:2px 6px;
     border:1px solid var(--mg-dim); border-radius:4px; background:var(--mg-soft); }}
   .oak:hover {{ color:var(--mg-bright); }}
@@ -329,15 +362,17 @@ TEMPLATE = """<!DOCTYPE html>
 
   <div class="stats">
     <div class="stat"><div class="k">Markets</div><div class="v">{count}</div></div>
-    <div class="stat"><div class="k">Suspected</div><div class="v warn">{suspected}</div></div>
-    <div class="stat"><div class="k">Watchlist</div><div class="v">{watch}</div></div>
+    <div class="stat"><div class="k">Suspected · squeeze</div><div class="v warn">{suspected}</div></div>
+    <div class="stat"><div class="k">Multi-sign · ≥2</div><div class="v">{multi_sign}</div></div>
     <div class="stat"><div class="k">Updated (UTC)</div><div class="v" style="font-size:14px">{gen}</div></div>
   </div>
   <div class="eyebrow" style="margin:10px 2px 0">venues: {venue_line}</div>
+  <div class="eyebrow" style="margin:5px 2px 0">flags: {flags_line}</div>
 
   <div class="controls">
     <button class="filt on" data-f="all">All</button>
     <button class="filt" data-f="suspected">Suspected</button>
+    <button class="filt" data-f="multi">Multi-sign</button>
     <button class="filt" data-f="watchlist">Watchlist</button>
     <span class="right">{shown_note}</span>
   </div>
@@ -345,7 +380,7 @@ TEMPLATE = """<!DOCTYPE html>
   <table>
     <thead><tr>
       <th>#</th><th>Token</th><th>Venue</th><th>Status</th><th>Score</th><th>Conf</th>
-      <th>Signals</th><th>OAK</th><th>Evidence</th>
+      <th>Signs</th><th>OAK</th><th>Evidence</th>
     </tr></thead>
     <tbody id="rows">
       {rows}
@@ -371,7 +406,10 @@ TEMPLATE = """<!DOCTYPE html>
       b.classList.add('on');
       var f = b.getAttribute('data-f');
       document.querySelectorAll('#rows .row').forEach(function(r) {{
-        r.style.display = (f === 'all' || r.getAttribute('data-status') === f) ? '' : 'none';
+        var show = (f === 'all')
+          || (f === 'multi' ? parseInt(r.getAttribute('data-flags'), 10) >= 2
+                            : r.getAttribute('data-status') === f);
+        r.style.display = show ? '' : 'none';
       }});
     }});
   }});

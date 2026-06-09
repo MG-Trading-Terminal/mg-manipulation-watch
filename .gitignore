@@ -18,6 +18,9 @@ data/logs/
 # git; data/history/_scans.jsonl is the lightweight committed summary.
 data/snapshots/
 
+# Bulk enrichment cache (rebuilt by detector.enrich; not source)
+data/enrich/
+
 # OS / editor
 .DS_Store
 *.swp
