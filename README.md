@@ -33,26 +33,37 @@ advice. To request a correction or takedown, open an issue.
 | `cleared` | reviewed, suspicion withdrawn (false positive) | human |
 
 ## How the score works
-Six signals → weighted 0–100 → status. Missing data lowers *confidence* instead
-of faking certainty. See [`SOURCES.md`](./SOURCES.md) and
-[`ARCHITECTURE.md`](./ARCHITECTURE.md).
+Every token gets a **0–100 evidence score** built from the manipulation signs that
+actually fired, in two tiers:
 
-| signal | normal | crime-coin | OAK |
-|---|---|---|---|
-| MC / TVL | 1–4× | 50–120× | T17.001 |
-| Funding (short side) | ~0 | −1.5…−2% / 4h | T17.002 |
-| Perp OI / float | low | dominant | T17.002 |
-| Price / sales | tens | thousands | T17.001 |
-| Supply concentration | distributed | >90% one cluster | T3.006 |
-| Wash volume | no | yes | T3.002 |
+- **Hard evidence** — a *realized* rug (pump→dump, ≥90% collapse, death) or a
+  definitive contract scam (honeypot). Low false-positive; drives the full scale.
+- **Soft evidence** — heuristic contract / structure / market signs. These also
+  fire on legit tokens (a multisig reads as `owner-control`, staked supply as
+  `holder-concentration`), so on their own they **cap at 45** — "elevated", never high.
+
+**Status derives from the score**: `suspected` ⟺ honeypot or score ≥ 50. Because
+soft-only evidence caps below 50, a `suspected` call always rests on hard evidence —
+a blue-chip that merely trips heuristic flags stays `watchlist`. See
+[`ARCHITECTURE.md`](./ARCHITECTURE.md) and [`SOURCES.md`](./SOURCES.md).
+
+| sign | tier | OAK |
+|---|---|---|
+| pump-and-dump (ran ≥3×, crashed ≥80%, no recovery) | hard | T3.003 |
+| collapsed ≥90% from ATH · dead (no volume) | hard | T3.003 |
+| honeypot / can't-sell | hard | T1.006 |
+| owner-control · mintable · high-tax · holder-concentration | soft | T1 · T3.006 |
+| thin liquidity · fresh launch · low float | soft | T2 |
+| negative-funding squeeze · OI dominance · MC/TVL · P/S | soft | T17 |
 
 ## Run locally
 ```bash
-python3 -m tests.test_calibration   # offline calibration (MYX/RAVE high, majors low)
-python3 -m detector.pipeline        # live scan -> data/candidates/index.json
-python3 web/build.py                # generate dist/index.html + dist/data.json
+python3 -m tests.test_calibration   # offline calibration (rugs high, blue-chips capped)
+python3 -m detector.collect         # live multi-venue scan -> data/candidates/index.json
+npm install && npm run build        # build the site (bakes JSON -> dist/)
 ```
-No dependencies — Python 3.9+ stdlib only.
+The scan is Python 3.9+ stdlib-only; the site needs Node 20+. A free CoinGecko
+Demo key in `.env` (`COINGECKO_API_KEY=…`) lifts the rate limit for richer profiles.
 
 ### Run it locally (no repo / no cloud)
 The system accumulates an append-only base under `data/history/` so you can watch
@@ -73,6 +84,21 @@ scripts/    build-site-data.mjs (JSON→generated.ts), copy-static.mjs, local ru
 dist/       built site (generated) — deployed to mgterminal.com
 tests/      calibration regression
 ```
+
+## Deploy (one-time setup)
+Updates **and** production are fully automated by
+[`.github/workflows/crime-scan.yml`](./.github/workflows/crime-scan.yml): every 4
+hours it scans, gates on the calibration test, commits the history summary, builds
+the site, and deploys to GitHub Pages. The enrichment cache persists across runs
+(via `actions/cache`) so coverage accumulates. To go live, once:
+
+1. **Create the repo & push** — `gh repo create mgterminal --public --source=. --push`
+2. **Add the API key secret** — `gh secret set COINGECKO_API_KEY` (free [CoinGecko Demo](https://www.coingecko.com/en/api) key; the scan still runs without it, just rate-limited).
+3. **Enable Pages** — repo *Settings → Pages → Source = **GitHub Actions***.
+4. **Custom domain** — point `mgterminal.com` DNS at GitHub Pages (4 A records, or a `CNAME` to `<user>.github.io`); the build already ships `dist/CNAME`.
+5. **Kick it** — *Actions → crime-scan → Run workflow* (or wait for the cron).
+
+After that there is nothing manual: the job is the update system, Pages is production.
 
 ## Public API
 The watchlist is **open data** — one JSON document, no key, no auth, refreshed every

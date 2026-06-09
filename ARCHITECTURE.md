@@ -8,36 +8,41 @@ and the whole thing safe to run unattended every 4 hours.
 
 ## Data flow
 ```
-                        data/universe.json            (inputs: what to scan)
+   6 perp venues  +  data/{blacklist,mappings}.json  +  data/confirmed/
+   (Binance/Bybit/Bitget/Gate/MEXC/Hyperliquid)
                                │
                                ▼
         ┌──────────────────────────────────────────────┐
-        │             detector/pipeline.py              │   (orchestration, 4h batch)
-        │                                               │
-        │   sources.py ──fetch──▶ Signals snapshot      │   ← live, best-effort, no-key
-        │      Binance USD-M  (funding, OI, vol)         │     one dead source ≠ dead row
-        │      CoinGecko      (market cap)               │
-        │      DefiLlama      (TVL, fees)                │
+        │              detector/collect.py              │   (primary market-wide sweep, 4h)
+        │                                               │   blacklist drops tradfi up front
+        │   venues.py    ──▶ funding / OI / volume       │   ← bulk, one call per venue
+        │   enrich.py    ──▶ MC / TVL / price / dumps     │   ← CoinGecko + DefiLlama (cached)
+        │   goplus.py    ──▶ contract security (EVM)      │   ← honeypot / mint / owner / holders
+        │   dexscreener  ──▶ DEX liquidity / pair age     │     one dead source ≠ dead row
         │                       │                        │
-        │   crime_score.py ◀────┘  score(Signals)        │   ← PURE. no I/O. testable.
-        │      6 signals → weighted 0-100 → status       │     emits watchlist|suspected only
+        │   crime_score.py ◀────┘  risk_score(flags)      │   ← PURE. no I/O. testable.
+        │      evidence score 0-100 → status             │     hard (realized rug / honeypot)
+        │      soft heuristic signs cap at 45            │     drives scale; suspected ⟺ ≥50
         └──────────────────────────────────────────────┘
                                │
                                ▼
-            data/candidates/index.json   (+ <SYMBOL>.json per token)
+            data/candidates/index.json   (+ /v1/token/<SYMBOL>.json)
                                │   ◀── canonical machine-readable output
               ┌────────────────┴─────────────────┐
               ▼                                   ▼
-        web/build.py                       (consumers: bot-trader сверка,
-        dist/index.html + data.json          other tooling, API clients)
-        (MeatGrinder design)
+        npm run build                       (consumers: bot-trader сверка,
+          build-site-data.mjs → generated.ts   other tooling, API clients)
+          vite build + copy-static.mjs
+            → dist/ (+ CNAME, /data.json, /v1/…)
                                │
                                ▼
-        GitHub Action (cron 0 */4 * * *)
-          1. run pipeline      → refresh JSON
-          2. run calibration   → fail the run if the scorer regressed
-          3. commit data/      → versioned history for diffing / сверка
-          4. build + deploy    → GitHub Pages → mgterminal.com
+        GitHub Action (cron 0 */4 * * *) — .github/workflows/crime-scan.yml
+          1. restore enrich cache → coverage accumulates across runs
+          2. calibration gate     → fail the run if the scorer regressed
+          3. run collect          → refresh JSON
+          4. build                → bake JSON + render dist/
+          5. commit data/history  → versioned summary for diffing / сверка
+          6. deploy-pages         → GitHub Pages → mgterminal.com
 ```
 
 ## The two-tier data model (machine vs human)

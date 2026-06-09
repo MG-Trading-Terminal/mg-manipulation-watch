@@ -1,7 +1,8 @@
 name: crime-scan
 
 # Every 4 hours: refresh the watchlist data, gate on the calibration test,
-# version the data in git, then build + deploy the site to Pages (mgterminal.com).
+# version the lightweight history in git, then build + deploy the site to Pages
+# (mgterminal.com). This IS the production update system — no manual step.
 on:
   schedule:
     - cron: "0 */4 * * *"
@@ -11,10 +12,14 @@ on:
     paths:
       - "detector/**"
       - "src/**"
+      - "scripts/**"
       - "data/universe.json"
+      - "data/blacklist.json"
+      - "data/mappings.json"
+      - "data/confirmed/**"
 
 permissions:
-  contents: write     # commit refreshed data
+  contents: write     # commit refreshed history
   pages: write        # deploy Pages
   id-token: write     # Pages deploy auth
 
@@ -38,28 +43,45 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+          cache: npm
 
       - name: Install frontend deps
         run: npm ci
+
+      # Persist the enrichment cache (profiles / dumps / GoPlus / DexScreener /
+      # CoinGecko maps) ACROSS runs. data/enrich is gitignored, so without this
+      # every 4h run would start cold, burn the budget re-fetching, and never
+      # accumulate coverage. A fresh key each run saves a new layer; restore-keys
+      # pulls the most recent one back in so coverage grows over time.
+      - name: Restore enrichment cache
+        uses: actions/cache@v4
+        with:
+          path: data/enrich
+          key: enrich-${{ github.run_id }}
+          restore-keys: |
+            enrich-
 
       - name: Calibration gate (fail before publishing if the scorer regressed)
         run: python3 -m tests.test_calibration
 
       - name: Scan all venues -> JSON
+        env:
+          COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
         run: python3 -m detector.collect
 
       - name: Build site (Vite/React/TS — bakes JSON into generated.ts)
         run: npm run build
 
-      - name: Commit refreshed data (versioned history for diffing / сверка)
+      - name: Commit refreshed history (lightweight summary for diffing / сверка)
         run: |
           git config user.name "mg-terminal-bot"
           git config user.email "bot@mgterminal.com"
-          git add data/candidates data/history
+          git add data/history
           if git diff --cached --quiet; then
-            echo "no data changes"
+            echo "no history changes"
           else
             git commit -m "chore(scan): refresh manipulation watch $(date -u +%FT%TZ)"
+            git pull --rebase --autostash origin main || true
             git push
           fi
 
