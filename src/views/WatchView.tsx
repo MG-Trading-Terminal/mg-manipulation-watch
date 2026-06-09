@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { FLAG_DESCRIPTION, FLAG_LABEL, num } from "../lib";
+import { FLAG_DESCRIPTION, FLAG_LABEL, num, sortTokens } from "../lib";
+import type { SortDir, SortKey } from "../lib";
 import { data } from "../types";
 import { FlagViz } from "../components/FlagViz";
+import { Highlights } from "../components/Highlights";
 import { TokenTable } from "../components/TokenTable";
+import { TokenCards } from "../components/TokenCards";
 import { Pager } from "../components/Pager";
 
 const GLOSSARY_ORDER = [
@@ -15,6 +18,20 @@ const FILTERS = [
   ["all", "All"], ["suspected", "Suspected"], ["multi", "Multi-sign"], ["watchlist", "Watchlist"],
 ] as const;
 const PAGE_SIZE = 50;
+
+// Mobile sort affordance (desktop sorts via the table headers).
+const SORTS: ReadonlyArray<readonly [SortKey, string]> = [
+  ["score", "Score"], ["chg24", "24h"], ["drawdown", "From ATH"],
+  ["signs", "Signs"], ["venues", "Venues"], ["symbol", "A–Z"],
+];
+
+function nextSort(prev: { key: SortKey; dir: SortDir }, key: SortKey): { key: SortKey; dir: SortDir } {
+  if (prev.key === key) return { key, dir: prev.dir === "asc" ? "desc" : "asc" };
+  // Sensible default direction per column: A–Z ascending, dump ascending
+  // (most-negative first), everything else descending (worst/biggest first).
+  const dir: SortDir = key === "symbol" || key === "drawdown" ? "asc" : "desc";
+  return { key, dir };
+}
 
 function Stat({ k, v, cls }: { k: string; v: React.ReactNode; cls?: string }) {
   return (
@@ -30,20 +47,26 @@ export function WatchView() {
   const [filter, setFilter] = useState<string>("all");
   const [query, setQuery] = useState<string>("");
   const [page, setPage] = useState<number>(0);
+  const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: "score", dir: "desc" });
+
+  const onSort = (k: SortKey) => setSort((prev) => nextSort(prev, k));
 
   const q = query.trim().toLowerCase();
-  const filtered = useMemo(() => d.by_token.filter((t) => {
-    const passFilter = filter === "all" ? true
-      : filter === "multi" ? t.flags.length >= 2
-        : t.status === filter;
-    if (!passFilter) return false;
-    if (!q) return true;
-    return t.symbol.toLowerCase().includes(q)
-      || t.flags.some((f) => f.includes(q))
-      || t.venues.some((v) => v.toLowerCase().includes(q));
-  }), [d.by_token, filter, q]);
+  const filtered = useMemo(() => {
+    const rows = d.by_token.filter((t) => {
+      const passFilter = filter === "all" ? true
+        : filter === "multi" ? t.flags.length >= 2
+          : t.status === filter;
+      if (!passFilter) return false;
+      if (!q) return true;
+      return t.symbol.toLowerCase().includes(q)
+        || t.flags.some((f) => f.includes(q))
+        || t.venues.some((v) => v.toLowerCase().includes(q));
+    });
+    return sortTokens(rows, sort.key, sort.dir);
+  }, [d.by_token, filter, q, sort.key, sort.dir]);
 
-  useEffect(() => { setPage(0); }, [filter, q]);
+  useEffect(() => { setPage(0); }, [filter, q, sort.key, sort.dir]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const clampedPage = Math.min(page, pageCount - 1);
@@ -101,6 +124,8 @@ export function WatchView() {
         {d.excluded_count ? ` · ${d.excluded_count} tokenized stocks/indices excluded` : ""}
       </div>
 
+      <Highlights tokens={d.by_token} />
+
       <div className="eyebrow" style={{ margin: "26px 2px 2px" }}>
         signs by frequency — across {num(d.token_count)} scanned tokens
       </div>
@@ -119,8 +144,21 @@ export function WatchView() {
         <span className="right">{num(filtered.length)} match</span>
       </div>
 
+      {/* Mobile sort control (desktop sorts via the table headers) */}
+      <div className="sortbar">
+        <span className="sortbar-k">sort</span>
+        {SORTS.map(([k, label]) => (
+          <button key={k} className={`sortchip ${sort.key === k ? "on" : ""}`} onClick={() => onSort(k)}>
+            {label}{sort.key === k ? <span className="sort-ind"> {sort.dir === "asc" ? "▲" : "▼"}</span> : null}
+          </button>
+        ))}
+      </div>
+
       <div className="table-wrap">
-        <TokenTable tokens={shown} startRank={clampedPage * PAGE_SIZE + 1} />
+        <TokenTable tokens={shown} startRank={clampedPage * PAGE_SIZE + 1} sort={sort} onSort={onSort} />
+      </div>
+      <div className="cards-wrap">
+        <TokenCards tokens={shown} />
       </div>
       <Pager page={clampedPage} pageCount={pageCount} total={filtered.length} pageSize={PAGE_SIZE} onPage={setPage} />
     </>

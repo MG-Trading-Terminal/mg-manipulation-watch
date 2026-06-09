@@ -1,4 +1,5 @@
 /* Shared constants + helpers. Sign flags map to OAK techniques (see SOURCES.md). */
+import type { Token } from "./types";
 
 export const OAK_BASE = "https://onchainattack.org";
 export const DISPLAY_LIMIT = 300;
@@ -177,4 +178,50 @@ export function flagTitle(fl: string, ctx: Ctx): string {
   if (fl === "fresh-launch" && n("pair_age_days") != null) return `pair ${n("pair_age_days")}d old`;
   if (fl === "holder-concentration" && n("top_holder_control") != null) return `top holders ${Math.round((n("top_holder_control") as number) * 100)}%`;
   return "";
+}
+
+/* ---- Sorting (column headers on desktop, segmented control on mobile) ---- */
+export type SortKey = "score" | "symbol" | "price" | "chg24" | "drawdown" | "signs" | "venues";
+export type SortDir = "asc" | "desc";
+
+const sortValue = (t: Token, key: SortKey): number | string | null => {
+  switch (key) {
+    case "score": return t.score;
+    case "symbol": return t.symbol;
+    case "price": return t.market?.price ?? null;
+    case "chg24": return t.market?.chg24 ?? null;
+    case "drawdown": return t.market?.ath_pct ?? null;        // negative; more negative = bigger dump
+    case "signs": return t.flags.length;
+    case "venues": return t.venues.length;
+  }
+};
+
+/** Stable sort with null/undefined values always pushed to the bottom, so a
+ *  "—" row never tops the list regardless of direction. */
+export function sortTokens(tokens: Token[], key: SortKey, dir: SortDir): Token[] {
+  const sign = dir === "asc" ? 1 : -1;
+  return tokens
+    .map((t, i) => [t, i] as const)
+    .sort(([a, ai], [b, bi]) => {
+      const va = sortValue(a, key), vb = sortValue(b, key);
+      if (va == null && vb == null) return ai - bi;
+      if (va == null) return 1;
+      if (vb == null) return -1;
+      if (typeof va === "string" && typeof vb === "string") {
+        const c = va.localeCompare(vb);
+        return c !== 0 ? sign * c : ai - bi;
+      }
+      const c = (va as number) - (vb as number);
+      return c !== 0 ? sign * c : ai - bi;
+    })
+    .map(([t]) => t);
+}
+
+/** Net direction of a price-history sparkline: end vs start. */
+export function sparkTrend(spark?: number[] | null): "up" | "down" | "flat" {
+  if (!spark || spark.length < 2) return "flat";
+  const a = spark[0], b = spark[spark.length - 1];
+  if (b > a * 1.02) return "up";
+  if (b < a * 0.98) return "down";
+  return "flat";
 }
